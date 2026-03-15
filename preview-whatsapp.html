@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>LoopCan — WhatsApp Satış Otomasyonu</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --navy:#0d1f4e; --navy-mid:#162b6a; --navy-light:#e8ecf7;
+      --white:#fff; --bg:#f5f6f8;
+      --gray-100:#eaecf0; --gray-200:#d0d5de; --gray-400:#8a96a8; --gray-600:#4a5568;
+      --black:#0a0c10;
+      --green:#22c55e; --green-bg:#dcfce7; --green-text:#15803d;
+      --wa:#25D366; --wa-dark:#128C7E; --wa-bg:#e8fdf0;
+      --orange:#f97316; --orange-bg:#ffedd5; --orange-text:#c2410c;
+      --blue:#3b82f6; --blue-bg:#dbeafe; --blue-text:#1d4ed8;
+      --purple:#7c3aed; --purple-bg:#f3e8ff; --purple-text:#7c3aed;
+      --teal:#0d9488; --teal-bg:#ccfbf1; --teal-text:#0f766e;
+      --font-display:'Instrument Serif',serif;
+      --font-body:'Inter',sans-serif;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html{-webkit-font-smoothing:antialiased;}
+    body{font-family:var(--font-body);background:var(--white);color:var(--black);padding:4rem 1.5rem 5rem;}
+
+    .section-tag{display:inline-flex;align-items:center;background:var(--wa-bg);color:var(--wa-dark);padding:.28rem .9rem;border-radius:9999px;font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:1rem;}
+    .section-h{font-family:var(--font-display);font-size:clamp(1.85rem,2rem + 1.2vw,3.1rem);color:var(--black);line-height:1.12;letter-spacing:-.025em;margin:0 0 .75rem;}
+    .section-h em{font-style:italic;color:var(--wa-dark);}
+    .section-sub{font-size:1rem;color:var(--gray-600);line-height:1.78;max-width:500px;}
+
+    /* TIMER BADGE */
+    .timer-wrap{display:inline-flex;align-items:center;gap:.6rem;background:var(--navy);color:white;border-radius:9999px;padding:.4rem 1.1rem;margin-top:1.25rem;font-size:.82rem;font-weight:600;}
+    .timer-label{color:rgba(255,255,255,.55);font-size:.72rem;letter-spacing:.04em;}
+    .timer-val{font-family:var(--font-display);font-size:1.5rem;font-style:italic;line-height:1;letter-spacing:-.03em;color:var(--wa);min-width:52px;text-align:right;}
+    .timer-unit{color:rgba(255,255,255,.55);font-size:.72rem;}
+
+    /* STATUS BAR */
+    .status-bar{display:flex;align-items:center;justify-content:center;gap:1.5rem;margin:1.5rem 0 0;flex-wrap:wrap;}
+    .status-item{display:flex;align-items:center;gap:.4rem;font-size:.74rem;font-weight:600;color:var(--gray-400);}
+    .status-dot{width:8px;height:8px;border-radius:50%;}
+    .status-item.active-step{color:var(--navy);}
+    .status-item.active-step .status-dot{animation:dp 1s infinite;}
+    .status-item.done-step{color:var(--green-text);}
+    @keyframes dp{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.4);opacity:.7}}
+    #stepLabel{font-size:.78rem;font-weight:700;color:var(--wa-dark);background:var(--wa-bg);padding:.28rem .85rem;border-radius:9999px;transition:all .3s;}
+
+    /* CANVAS */
+    .canvas-outer{max-width:940px;margin:2.5rem auto 0;position:relative;user-select:none;}
+    .canvas-inner{position:relative;width:100%;height:520px;}
+    .conn-svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible;}
+
+    .conn-bg{fill:none;stroke:var(--gray-200);stroke-width:2;stroke-dasharray:6 4;}
+    .conn-line{fill:none;stroke:var(--wa);stroke-width:2.5;stroke-linecap:round;opacity:0;transition:opacity .2s;}
+    .conn-line.active{opacity:1;}
+    .travel-circle{fill:var(--wa);opacity:0;}
+
+    /* NODES */
+    .node{
+      position:absolute; width:210px;
+      background:white; border:1.5px solid var(--gray-200); border-radius:14px;
+      padding:12px 14px; display:flex; align-items:center; gap:10px;
+      transition:border-color .3s, box-shadow .3s, transform .25s;
+    }
+    .node:hover{border-color:var(--gray-400);box-shadow:0 4px 16px rgba(0,0,0,.07);transform:translateY(-1px);}
+    .node.state-idle{border-color:var(--gray-200);}
+    .node.state-running{border-color:var(--wa);box-shadow:0 0 0 3px rgba(37,211,102,.15),0 4px 20px rgba(37,211,102,.12);}
+    .node.state-done{border-color:var(--green);box-shadow:0 0 0 3px rgba(34,197,94,.1);}
+    .node.state-done .node-title{color:var(--green-text);}
+    .node-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+    .node-icon svg{width:18px;height:18px;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+    .ni-wa{background:var(--wa-bg);}     .ni-wa svg{stroke:var(--wa-dark);}
+    .ni-blue{background:var(--blue-bg);} .ni-blue svg{stroke:var(--blue-text);}
+    .ni-navy{background:var(--navy-light);} .ni-navy svg{stroke:var(--navy);}
+    .ni-purple{background:var(--purple-bg);} .ni-purple svg{stroke:var(--purple-text);}
+    .ni-teal{background:var(--teal-bg);} .ni-teal svg{stroke:var(--teal-text);}
+    .ni-green{background:var(--green-bg);} .ni-green svg{stroke:var(--green-text);}
+    .node-info{flex:1;min-width:0;}
+    .node-title{font-size:.82rem;font-weight:700;color:var(--black);line-height:1.2;}
+    .node-sub{font-size:.68rem;color:var(--gray-400);margin-top:.15rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .node-status-dot{width:7px;height:7px;border-radius:50%;background:var(--gray-200);flex-shrink:0;transition:background .3s;}
+    .node.state-running .node-status-dot{background:var(--wa);animation:dp 1s infinite;}
+    .node.state-done .node-status-dot{background:var(--green);}
+
+    /* TIMING CHIPS on lines */
+    .time-chip{font-size:.6rem;font-weight:700;fill:var(--gray-400);font-family:'Inter',sans-serif;}
+    .time-chip.lit{fill:var(--wa-dark);}
+
+    /* LOOP BAR */
+    .loop-bar{max-width:940px;margin:1.25rem auto 0;display:flex;align-items:center;gap:.75rem;}
+    .loop-track{flex:1;height:3px;background:var(--gray-100);border-radius:99px;overflow:hidden;}
+    .loop-fill{height:100%;background:var(--wa);border-radius:99px;width:0%;transition:width .1s linear;}
+    .loop-label{font-size:.7rem;font-weight:600;color:var(--gray-400);white-space:nowrap;}
+    .loop-count{font-size:.7rem;font-weight:700;color:var(--wa-dark);white-space:nowrap;}
+  </style>
+</head>
+<body>
+
+<div style="text-align:center;">
+  <span class="section-tag">
+    <svg width="12" height="12" viewBox="0 0 24 24" style="margin-right:4px;fill:var(--wa-dark)"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+    WhatsApp Otomasyonu
+  </span>
+  <h2 class="section-h">Müşteri yazdı, <em>sistem devreye girdi</em></h2>
+  <p class="section-sub" style="margin:0 auto;">WhatsApp'tan gelen her mesaj analiz edilir, sınıflandırılır ve saniyeler içinde yanıtlanır.</p>
+
+  <div class="timer-wrap">
+    <span class="timer-label">YANIT SÜRESİ</span>
+    <span class="timer-val" id="timerVal">0</span>
+    <span class="timer-unit">saniye</span>
+  </div>
+
+  <div class="status-bar">
+    <div class="status-item" id="si0"><div class="status-dot" style="background:var(--gray-200)"></div>Bekleniyor</div>
+    <div class="status-item" id="si1"><div class="status-dot" style="background:var(--wa)"></div>Mesaj Geldi</div>
+    <div class="status-item" id="si2"><div class="status-dot" style="background:var(--blue)"></div>Analiz Edildi</div>
+    <div class="status-item" id="si3"><div class="status-dot" style="background:var(--navy)"></div>Yanıt Gönderildi</div>
+    <div class="status-item" id="si4"><div class="status-dot" style="background:var(--green)"></div>Tamamlandı</div>
+    <span id="stepLabel">Mesaj bekleniyor...</span>
+  </div>
+</div>
+
+<!-- CANVAS -->
+<div class="canvas-outer">
+  <div class="canvas-inner" id="canvas">
+
+    <svg class="conn-svg" viewBox="0 0 900 520" id="svgLayer">
+      <!-- BG PATHS -->
+      <path class="conn-bg" d="M 360 108 C 360 134, 360 134, 360 160"/>
+      <path class="conn-bg" d="M 360 228 C 360 258, 120 258, 120 278"/>
+      <path class="conn-bg" d="M 360 228 C 360 258, 360 258, 360 278"/>
+      <path class="conn-bg" d="M 360 228 C 360 258, 600 258, 600 278"/>
+      <path class="conn-bg" d="M 120 358 C 120 388, 360 388, 360 400"/>
+      <path class="conn-bg" d="M 360 358 C 360 388, 360 388, 360 400"/>
+      <path class="conn-bg" d="M 600 358 C 600 388, 360 388, 360 400"/>
+
+      <!-- ANIMATED LINES -->
+      <path class="conn-line" id="l1" d="M 360 108 C 360 134, 360 134, 360 160"/>
+      <path class="conn-line" id="l2" d="M 360 228 C 360 258, 120 258, 120 278"/>
+      <path class="conn-line" id="l3" d="M 360 228 C 360 258, 360 258, 360 278"/>
+      <path class="conn-line" id="l4" d="M 360 228 C 360 258, 600 258, 600 278"/>
+      <path class="conn-line" id="l5" d="M 120 358 C 120 388, 360 388, 360 400"/>
+      <path class="conn-line" id="l6" d="M 360 358 C 360 388, 360 388, 360 400"/>
+      <path class="conn-line" id="l7" d="M 600 358 C 600 388, 360 388, 360 400"/>
+
+      <!-- TRAVEL DOTS -->
+      <circle class="travel-circle" id="d1"><animateMotion id="am1" dur="0.6s" begin="indefinite" fill="freeze" calcMode="spline" keySplines="0.4 0 0.2 1"><mpath href="#l1"/></animateMotion></circle>
+      <circle class="travel-circle" id="d2"><animateMotion id="am2" dur="0.6s" begin="indefinite" fill="freeze" calcMode="spline" keySplines="0.4 0 0.2 1"><mpath href="#l2"/></animateMotion></circle>
+      <circle class="travel-circle" id="d3"><animateMotion id="am3" dur="0.6s" begin="indefinite" fill="freeze" calcMode="spline" keySplines="0.4 0 0.2 1"><mpath href="#l3"/></animateMotion></circle>
+      <circle class="travel-circle" id="d4"><animateMotion id="am4" dur="0.6s" begin="indefinite" fill="freeze" calcMode="spline" keySplines="0.4 0 0.2 1"><mpath href="#l4"/></animateMotion></circle>
+      <circle class="travel-circle" id="d5"><animateMotion id="am5" dur="0.6s" begin="indefinite" fill="freeze" calcMode="spline" keySplines="0.4 0 0.2 1"><mpath href="#l5"/></animateMotion></circle>
+      <circle class="travel-circle" id="d6"><animateMotion id="am6" dur="0.6s" begin="indefinite" fill="freeze" calcMode="spline" keySplines="0.4 0 0.2 1"><mpath href="#l6"/></animateMotion></circle>
+      <circle class="travel-circle" id="d7"><animateMotion id="am7" dur="0.6s" begin="indefinite" fill="freeze" calcMode="spline" keySplines="0.4 0 0.2 1"><mpath href="#l7"/></animateMotion></circle>
+
+      <!-- TIMING CHIPS -->
+      <text class="time-chip" id="tc1" x="370" y="140">&lt; 1sn</text>
+      <text class="time-chip" id="tc2" x="50"  y="261">fiyat?</text>
+      <text class="time-chip" id="tc3" x="322" y="261">bilgi?</text>
+      <text class="time-chip" id="tc4" x="560" y="261">toplantı?</text>
+      <text class="time-chip" id="tc5" x="148" y="392">✓</text>
+      <text class="time-chip" id="tc6" x="364" y="392">✓</text>
+      <text class="time-chip" id="tc7" x="558" y="392">✓</text>
+    </svg>
+
+    <!-- NODE 1: Tetikleyici -->
+    <div class="node state-idle" id="n1" style="left:255px;top:40px;">
+      <div class="node-icon ni-wa">
+        <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      </div>
+      <div class="node-info">
+        <div class="node-title">WhatsApp Mesajı</div>
+        <div class="node-sub">Müşteri mesaj gönderdi</div>
+      </div>
+      <div class="node-status-dot"></div>
+    </div>
+
+    <!-- NODE 2: Analiz -->
+    <div class="node state-idle" id="n2" style="left:255px;top:160px;">
+      <div class="node-icon ni-blue">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/><path d="M8 11h6M11 8v6"/></svg>
+      </div>
+      <div class="node-info">
+        <div class="node-title">Mesajı Analiz Et</div>
+        <div class="node-sub">Niyet & konu tespiti</div>
+      </div>
+      <div class="node-status-dot"></div>
+    </div>
+
+    <!-- NODE 3: Fiyat teklifi -->
+    <div class="node state-idle" id="n3" style="left:15px;top:278px;">
+      <div class="node-icon ni-navy">
+        <svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      </div>
+      <div class="node-info">
+        <div class="node-title">Teklif Gönder</div>
+        <div class="node-sub">Otomatik fiyat teklifi</div>
+      </div>
+      <div class="node-status-dot"></div>
+    </div>
+
+    <!-- NODE 4: Bilgi gönder -->
+    <div class="node state-idle" id="n4" style="left:255px;top:278px;">
+      <div class="node-icon ni-purple">
+        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      </div>
+      <div class="node-info">
+        <div class="node-title">Bilgi Gönder</div>
+        <div class="node-sub">Katalog & detay dosyası</div>
+      </div>
+      <div class="node-status-dot"></div>
+    </div>
+
+    <!-- NODE 5: Toplantı -->
+    <div class="node state-idle" id="n5" style="left:495px;top:278px;">
+      <div class="node-icon ni-teal">
+        <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      </div>
+      <div class="node-info">
+        <div class="node-title">Toplantı Linki</div>
+        <div class="node-sub">Takvim daveti gönderildi</div>
+      </div>
+      <div class="node-status-dot"></div>
+    </div>
+
+    <!-- NODE 6: Tamamlandı -->
+    <div class="node state-idle" id="n6" style="left:255px;top:400px;">
+      <div class="node-icon ni-green">
+        <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+      </div>
+      <div class="node-info">
+        <div class="node-title">Yanıt Tamamlandı</div>
+        <div class="node-sub" id="doneSubtitle">Müşteri yanıt bekledi</div>
+      </div>
+      <div class="node-status-dot"></div>
+    </div>
+
+  </div>
+
+  <!-- LOOP BAR -->
+  <div class="loop-bar">
+    <span class="loop-label">Sonraki senaryo</span>
+    <div class="loop-track"><div class="loop-fill" id="loopFill"></div></div>
+    <span class="loop-count" id="loopCount">Senaryo #1</span>
+  </div>
+</div>
+
+<script>
+// ─── HELPERS ─────────────────────────────────────────────────────────────────
+const setNode  = (id, s) => { document.getElementById(id).className = 'node state-' + s; };
+const showLine = (id)    => document.getElementById(id).classList.add('active');
+const hideAll  = ()      => ['l1','l2','l3','l4','l5','l6','l7'].forEach(l => document.getElementById(l).classList.remove('active'));
+
+function travel(dotId, amId) {
+  const dot = document.getElementById(dotId);
+  dot.style.opacity = '1';
+  document.getElementById(amId).beginElement();
+  setTimeout(() => { dot.style.opacity = '0'; }, 700);
+}
+
+function setStatus(idx) {
+  document.querySelectorAll('.status-item').forEach((el, i) => {
+    el.classList.remove('active-step','done-step');
+    if (i === idx) el.classList.add('active-step');
+    else if (i < idx) el.classList.add('done-step');
+  });
+}
+
+function setLabel(txt) { document.getElementById('stepLabel').textContent = txt; }
+
+// ─── TIMER ───────────────────────────────────────────────────────────────────
+let timerInterval = null;
+let timerSeconds  = 0;
+
+function startTimer() {
+  timerSeconds = 0;
+  document.getElementById('timerVal').textContent = '0';
+  clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    timerSeconds++;
+    document.getElementById('timerVal').textContent = timerSeconds;
+  }, 1000);
+}
+
+function stopTimer() {
+  clearInterval(timerInterval);
+  document.getElementById('doneSubtitle').textContent = timerSeconds + ' saniyede yanıtlandı ✓';
+}
+
+// ─── SCENARIOS ───────────────────────────────────────────────────────────────
+const scenarios = [
+  { label:'Fiyat soruyor',   active:[3], label3:'Fiyat Teklifi', label4:'—', label5:'—' },
+  { label:'Bilgi istiyor',   active:[4], label3:'—', label4:'Katalog Gönderildi', label5:'—' },
+  { label:'Toplantı istiyor',active:[5], label3:'—', label4:'—', label5:'Takvim Linki' },
+  { label:'Genel soru',      active:[3,4,5] },
+];
+let scenarioIdx = 0;
+
+function resetAll() {
+  ['n1','n2','n3','n4','n5','n6'].forEach(n => setNode(n,'idle'));
+  hideAll();
+  ['d1','d2','d3','d4','d5','d6','d7'].forEach(d => { document.getElementById(d).style.opacity='0'; });
+  setStatus(0);
+  document.getElementById('doneSubtitle').textContent = 'Müşteri yanıt bekledi';
+}
+
+function runSequence() {
+  resetAll();
+  const sc = scenarios[scenarioIdx % scenarios.length];
+  scenarioIdx++;
+  document.getElementById('loopCount').textContent = 'Senaryo #' + scenarioIdx;
+
+  setLabel('WhatsApp mesajı bekleniyor...');
+  startTimer();
+
+  const tl = [
+    [0,    () => { setNode('n1','running'); setStatus(1); setLabel('"' + sc.label + '" — mesaj alındı'); }],
+    [800,  () => { showLine('l1'); travel('d1','am1'); }],
+    [1500, () => { setNode('n1','done'); setNode('n2','running'); setStatus(2); setLabel('Mesaj analiz ediliyor, niyet tespit ediliyor...'); }],
+    [2300, () => {
+      const a = sc.active;
+      if (a.includes(3)) { showLine('l2'); travel('d2','am2'); }
+      if (a.includes(4)) { showLine('l3'); travel('d3','am3'); }
+      if (a.includes(5)) { showLine('l4'); travel('d4','am4'); }
+      setLabel('Yanıt hazırlanıyor ve gönderiliyor...');
+    }],
+    [3100, () => {
+      setNode('n2','done'); setStatus(3);
+      const a = sc.active;
+      if (a.includes(3)) setNode('n3','running');
+      if (a.includes(4)) setNode('n4','running');
+      if (a.includes(5)) setNode('n5','running');
+      setLabel('Müşteriye yanıt iletildi');
+    }],
+    [3900, () => {
+      const a = sc.active;
+      if (a.includes(3)) { showLine('l5'); travel('d5','am5'); }
+      if (a.includes(4)) { showLine('l6'); travel('d6','am6'); }
+      if (a.includes(5)) { showLine('l7'); travel('d7','am7'); }
+    }],
+    [4700, () => {
+      ['n3','n4','n5'].forEach(n => setNode(n,'done'));
+      setNode('n6','running');
+      stopTimer();
+      setLabel('Tamamlandı — müşteri yanıt aldı');
+    }],
+    [5500, () => {
+      setNode('n6','done'); setStatus(4);
+      setLabel('✓ ' + timerSeconds + ' saniyede yanıtlandı');
+    }],
+  ];
+
+  tl.forEach(([delay, fn]) => setTimeout(fn, delay));
+}
+
+// ─── LOOP PROGRESS ────────────────────────────────────────────────────────────
+const LOOP_DUR = 8000;
+let progressInterval = null;
+let progressStart = null;
+
+function startProgress() {
+  progressStart = Date.now();
+  clearInterval(progressInterval);
+  progressInterval = setInterval(() => {
+    const pct = Math.min(((Date.now() - progressStart) / LOOP_DUR) * 100, 100);
+    document.getElementById('loopFill').style.width = pct + '%';
+    if (pct >= 100) {
+      clearInterval(progressInterval);
+      runSequence();
+      setTimeout(startProgress, 100);
+    }
+  }, 50);
+}
+
+// ─── START ───────────────────────────────────────────────────────────────────
+runSequence();
+setTimeout(startProgress, 100);
+</script>
+</body>
+</html>

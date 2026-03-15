@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>LoopCan Demo — Mail Otomasyon Paneli</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --navy:#0d1f4e; --navy-mid:#162b6a; --navy-light:#e8ecf7;
+      --white:#fff; --bg:#f0f2f7;
+      --gray-50:#f5f6f8; --gray-100:#eaecf0; --gray-200:#d0d5de;
+      --gray-400:#8a96a8; --gray-600:#4a5568; --black:#0a0c10;
+      --green:#22c55e; --green-bg:#dcfce7; --green-text:#15803d;
+      --yellow:#f59e0b; --yellow-bg:#fef3c7; --yellow-text:#92400e;
+      --red:#ef4444; --red-bg:#fee2e2; --red-text:#991b1b;
+      --blue:#3b82f6; --blue-bg:#dbeafe; --blue-text:#1d4ed8;
+      --purple:#7c3aed; --purple-bg:#f3e8ff; --purple-text:#7c3aed;
+      --teal-bg:#ccfbf1; --teal-text:#0f766e;
+      --orange-bg:#ffedd5; --orange-text:#c2410c;
+      --font-display:'Instrument Serif',serif;
+      --font-body:'Inter',sans-serif;
+      --font-brand:'Space Grotesk',sans-serif;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html,body{height:100%;-webkit-font-smoothing:antialiased;}
+    body{font-family:var(--font-body);background:var(--bg);color:var(--black);display:flex;flex-direction:column;overflow:hidden;height:100vh;}
+
+    /* DEMO BANNER */
+    .demo-banner{background:var(--navy);color:rgba(255,255,255,0.6);text-align:center;font-size:0.7rem;font-weight:600;letter-spacing:0.06em;padding:0.35rem;flex-shrink:0;}
+    .demo-banner span{color:white;}
+
+    /* TOPBAR */
+    .topbar{background:white;border-bottom:1px solid var(--gray-100);padding:0 1.5rem;height:52px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+    .topbar-left{display:flex;align-items:center;gap:0.85rem;}
+    .tb-logo{display:flex;align-items:center;gap:0.45rem;}
+    .tb-logo-dot{width:8px;height:8px;border-radius:50%;background:var(--navy);}
+    .tb-logo-text{font-family:var(--font-brand);font-size:0.88rem;font-weight:700;color:var(--navy);letter-spacing:-0.02em;}
+    .tb-divider{width:1px;height:18px;background:var(--gray-100);}
+    .tb-title{font-size:0.78rem;font-weight:600;color:var(--gray-600);}
+    .topbar-right{display:flex;align-items:center;gap:0.85rem;}
+    .tb-live{display:flex;align-items:center;gap:0.32rem;font-size:0.65rem;font-weight:700;color:var(--green);letter-spacing:0.05em;}
+    .tb-live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:lp 2s infinite;}
+    @keyframes lp{0%,100%{opacity:1}50%{opacity:0.4}}
+    .tb-clock{font-size:0.76rem;font-weight:600;color:var(--gray-400);font-variant-numeric:tabular-nums;}
+    .notif-btn{position:relative;width:32px;height:32px;border-radius:0.55rem;border:1px solid var(--gray-100);background:white;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s;}
+    .notif-btn:hover{background:var(--gray-50);}
+    .notif-btn svg{width:15px;height:15px;stroke:var(--gray-600);fill:none;stroke-width:2;stroke-linecap:round;}
+    .notif-badge{position:absolute;top:-4px;right:-4px;width:15px;height:15px;border-radius:50%;background:var(--red);color:white;font-size:0.5rem;font-weight:700;display:flex;align-items:center;justify-content:center;border:2px solid white;}
+    .notif-badge.hidden{display:none;}
+    .notif-shake{animation:shake .4s ease;}
+    @keyframes shake{0%,100%{transform:rotate(0)}25%{transform:rotate(-12deg)}75%{transform:rotate(12deg)}}
+
+    /* STATS BAR */
+    .statsbar{display:grid;grid-template-columns:repeat(4,1fr);gap:0.6rem;padding:0.6rem 1.5rem;flex-shrink:0;}
+    .stat-card{background:white;border:1px solid var(--gray-100);border-radius:0.75rem;padding:0.65rem 0.9rem;display:flex;align-items:center;gap:0.6rem;}
+    .stat-icon{width:30px;height:30px;border-radius:0.55rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+    .stat-icon svg{width:14px;height:14px;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+    .si-blue{background:var(--blue-bg);} .si-blue svg{stroke:var(--blue-text);}
+    .si-yellow{background:var(--yellow-bg);} .si-yellow svg{stroke:var(--yellow-text);}
+    .si-green{background:var(--green-bg);} .si-green svg{stroke:var(--green-text);}
+    .si-gray{background:var(--gray-100);} .si-gray svg{stroke:var(--gray-600);}
+    .stat-num{font-family:var(--font-display);font-size:1.4rem;font-style:italic;color:var(--navy);line-height:1;letter-spacing:-0.03em;}
+    .stat-label{font-size:0.62rem;font-weight:600;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.05em;margin-top:0.08rem;}
+
+    /* 3-PANEL LAYOUT */
+    .panels{display:grid;grid-template-columns:196px 310px 1fr;flex:1;overflow:hidden;padding:0 1.25rem 0.85rem;gap:0.75rem;min-height:0;}
+
+    /* ── LEFT SIDEBAR ── */
+    .left-sidebar{display:flex;flex-direction:column;gap:0;overflow-y:auto;padding-top:0.5rem;}
+    .left-sidebar::-webkit-scrollbar{width:2px;}
+    .left-sidebar::-webkit-scrollbar-thumb{background:var(--gray-200);}
+    .sidebar-section{margin-bottom:1.25rem;}
+    .sidebar-section-title{font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.09em;color:var(--gray-400);margin-bottom:0.45rem;padding-left:0.1rem;}
+    .sidebar-item{display:flex;align-items:center;justify-content:space-between;padding:0.45rem 0.65rem;border-radius:0.6rem;cursor:pointer;transition:background .12s;margin-bottom:0.18rem;}
+    .sidebar-item:hover{background:var(--gray-100);}
+    .sidebar-item.active{background:var(--navy-light);}
+    .sidebar-item-left{display:flex;align-items:center;gap:0.5rem;}
+    .sidebar-item-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+    .dot-all{background:var(--gray-400);}
+    .dot-waiting{background:var(--yellow);}
+    .dot-approved{background:var(--green);}
+    .dot-held{background:var(--gray-400);}
+    .dot-sent{background:var(--blue);}
+    .sidebar-item-label{font-size:0.76rem;font-weight:500;color:var(--black);}
+    .sidebar-item.active .sidebar-item-label{font-weight:700;color:var(--navy);}
+    .sidebar-item-count{font-size:0.65rem;font-weight:700;color:var(--gray-400);background:var(--gray-100);padding:0.1rem 0.45rem;border-radius:9999px;min-width:20px;text-align:center;}
+    .sidebar-item.active .sidebar-item-count{background:var(--navy-light);color:var(--navy);}
+    /* category dots */
+    .cat-fiyat{background:#8b5cf6;}
+    .cat-toplanti{background:#3b82f6;}
+    .cat-teknik{background:#f59e0b;}
+    .cat-sozlesme{background:#ef4444;}
+    .cat-tesekkur{background:#22c55e;}
+    .cat-referans{background:#ec4899;}
+    .cat-diger{background:#8a96a8;}
+
+    /* ── MIDDLE: MAIL LIST ── */
+    .mail-panel{display:flex;flex-direction:column;background:white;border:1px solid var(--gray-100);border-radius:0.85rem;overflow:hidden;min-height:0;}
+    .mail-panel-header{padding:0.75rem 1rem 0.6rem;border-bottom:1px solid var(--gray-100);flex-shrink:0;}
+    .mail-panel-title{font-size:0.8rem;font-weight:700;color:var(--black);margin-bottom:0.5rem;}
+    .mail-search{position:relative;}
+    .mail-search input{width:100%;border:1px solid var(--gray-200);border-radius:0.55rem;padding:0.38rem 0.75rem 0.38rem 2rem;font-size:0.74rem;font-family:var(--font-body);outline:none;background:var(--gray-50);color:var(--black);transition:border-color .15s;}
+    .mail-search input:focus{border-color:var(--navy);background:white;}
+    .mail-search svg{position:absolute;left:0.6rem;top:50%;transform:translateY(-50%);width:12px;height:12px;stroke:var(--gray-400);fill:none;stroke-width:2;stroke-linecap:round;}
+    .mail-list{flex:1;overflow-y:auto;min-height:0;}
+    .mail-list::-webkit-scrollbar{width:3px;}
+    .mail-list::-webkit-scrollbar-thumb{background:var(--gray-200);border-radius:99px;}
+    .mail-item{padding:0.8rem 1rem;border-bottom:1px solid var(--gray-100);cursor:pointer;transition:background .1s;position:relative;}
+    .mail-item:hover{background:var(--gray-50);}
+    .mail-item.active{background:var(--navy-light);}
+    .mail-item-row1{display:flex;align-items:center;justify-content:space-between;margin-bottom:0.18rem;gap:0.5rem;}
+    .mail-item-from{font-size:0.75rem;font-weight:600;color:var(--black);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;}
+    .mail-item.unread .mail-item-from{font-weight:700;}
+    .mail-item-time{font-size:0.63rem;color:var(--gray-400);white-space:nowrap;flex-shrink:0;}
+    .mail-item-subject{font-size:0.71rem;color:var(--gray-600);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:0.28rem;}
+    .mail-item.unread .mail-item-subject{color:var(--black);}
+    .mail-item-bottom{display:flex;align-items:center;gap:0.35rem;}
+    .cat-badge{font-size:0.59rem;font-weight:700;padding:0.12rem 0.5rem;border-radius:9999px;letter-spacing:0.03em;white-space:nowrap;}
+    .status-pill{font-size:0.59rem;font-weight:700;padding:0.12rem 0.5rem;border-radius:9999px;letter-spacing:0.03em;margin-left:auto;white-space:nowrap;}
+    .sp-waiting{background:var(--yellow-bg);color:var(--yellow-text);}
+    .sp-approved{background:var(--green-bg);color:var(--green-text);}
+    .sp-held{background:var(--gray-100);color:var(--gray-600);}
+    .sp-sent{background:var(--blue-bg);color:var(--blue-text);}
+    .unread-bar{position:absolute;left:0;top:15%;height:70%;width:3px;background:var(--navy);border-radius:0 2px 2px 0;}
+    .mail-enter{animation:mailIn .35s ease;}
+    @keyframes mailIn{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
+
+    /* ── RIGHT: DETAIL ── */
+    .detail-panel{display:flex;flex-direction:column;min-height:0;gap:0;}
+    .detail-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0.65rem;background:white;border:1px solid var(--gray-100);border-radius:0.85rem;color:var(--gray-400);}
+    .detail-empty svg{width:38px;height:38px;stroke:var(--gray-200);fill:none;stroke-width:1.5;stroke-linecap:round;}
+    .detail-empty p{font-size:0.8rem;}
+    .detail-wrap{flex:1;display:flex;flex-direction:column;background:white;border:1px solid var(--gray-100);border-radius:0.85rem;overflow:hidden;min-height:0;}
+
+    /* Detail header */
+    .detail-head{padding:0.85rem 1.1rem;border-bottom:1px solid var(--gray-100);flex-shrink:0;}
+    .detail-head-row1{display:flex;align-items:flex-start;justify-content:space-between;gap:0.75rem;margin-bottom:0.5rem;}
+    .detail-subject{font-size:0.9rem;font-weight:700;color:var(--black);line-height:1.3;flex:1;}
+    .detail-status-badge{font-size:0.63rem;font-weight:700;padding:0.18rem 0.6rem;border-radius:9999px;white-space:nowrap;flex-shrink:0;}
+    .dsb-waiting{background:var(--yellow-bg);color:var(--yellow-text);}
+    .dsb-approved{background:var(--green-bg);color:var(--green-text);}
+    .dsb-held{background:var(--gray-100);color:var(--gray-600);}
+    .dsb-sent{background:var(--blue-bg);color:var(--blue-text);}
+    .detail-head-row2{display:flex;align-items:center;gap:1.1rem;flex-wrap:wrap;}
+    .detail-meta{font-size:0.7rem;color:var(--gray-400);display:flex;align-items:center;gap:0.25rem;}
+    .detail-meta strong{color:var(--gray-600);font-weight:600;}
+
+    /* Split body: original + draft */
+    .detail-split{flex:1;display:grid;grid-template-rows:1fr 1fr;overflow:hidden;min-height:0;}
+    .split-pane{display:flex;flex-direction:column;overflow:hidden;min-height:0;}
+    .split-pane:first-child{border-bottom:2px solid var(--gray-100);}
+    .split-pane-header{padding:0.5rem 1.1rem;background:var(--gray-50);border-bottom:1px solid var(--gray-100);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+    .split-pane-label{font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--gray-400);display:flex;align-items:center;gap:0.4rem;}
+    .split-pane-label svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;}
+    .split-pane-label.draft-label{color:var(--navy);}
+    .split-pane-label.draft-label svg{stroke:var(--navy);}
+    .split-edit-btn{font-size:0.63rem;font-weight:700;color:var(--navy);background:none;border:1px solid var(--navy);border-radius:9999px;padding:0.12rem 0.5rem;cursor:pointer;transition:all .15s;}
+    .split-edit-btn:hover,.split-edit-btn.active{background:var(--navy);color:white;}
+    .split-body{flex:1;overflow-y:auto;padding:0.85rem 1.1rem;min-height:0;}
+    .split-body::-webkit-scrollbar{width:3px;}
+    .split-body::-webkit-scrollbar-thumb{background:var(--gray-200);border-radius:99px;}
+    .mail-body-text{font-size:0.78rem;color:var(--gray-600);line-height:1.75;white-space:pre-line;}
+    .draft-textarea{width:100%;height:100%;border:none;outline:none;font-size:0.78rem;font-family:var(--font-body);color:var(--black);line-height:1.75;resize:none;background:transparent;}
+    .draft-textarea[readonly]{color:var(--gray-600);}
+
+    /* Actions bar */
+    .detail-actions{padding:0.7rem 1.1rem;border-top:1px solid var(--gray-100);display:flex;gap:0.4rem;flex-wrap:wrap;flex-shrink:0;align-items:center;}
+    .act-btn{display:inline-flex;align-items:center;gap:0.3rem;padding:0.44rem 0.9rem;border-radius:9999px;font-size:0.73rem;font-weight:600;font-family:var(--font-body);cursor:pointer;border:1px solid transparent;transition:all .15s;white-space:nowrap;}
+    .act-btn svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+    .ab-approve{background:var(--navy);color:white;}
+    .ab-approve:hover{background:var(--navy-mid);}
+    .ab-edit{background:white;color:var(--navy);border-color:var(--navy);}
+    .ab-edit:hover{background:var(--navy-light);}
+    .ab-hold{background:white;color:var(--gray-600);border-color:var(--gray-200);}
+    .ab-hold:hover{background:var(--gray-50);border-color:var(--gray-400);}
+    .ab-manual{background:white;color:var(--gray-600);border-color:var(--gray-200);}
+    .ab-manual:hover{background:var(--gray-50);border-color:var(--gray-400);}
+    .ab-sent-msg{font-size:0.73rem;color:var(--gray-400);}
+
+    /* Manual compose overlay */
+    .manual-overlay{position:fixed;inset:0;background:rgba(13,31,78,0.35);z-index:50;display:flex;align-items:center;justify-content:center;}
+    .manual-modal{background:white;border-radius:1rem;width:520px;max-width:90vw;box-shadow:0 24px 60px rgba(0,0,0,0.18);display:flex;flex-direction:column;overflow:hidden;}
+    .manual-modal-head{background:var(--navy);padding:0.85rem 1.1rem;display:flex;align-items:center;justify-content:space-between;}
+    .manual-modal-title{font-size:0.8rem;font-weight:700;color:white;letter-spacing:0.02em;}
+    .manual-close{background:rgba(255,255,255,0.15);border:none;border-radius:50%;width:22px;height:22px;color:white;cursor:pointer;font-size:0.75rem;display:flex;align-items:center;justify-content:center;transition:background .15s;}
+    .manual-close:hover{background:rgba(255,255,255,0.3);}
+    .manual-to{padding:0.6rem 1.1rem;border-bottom:1px solid var(--gray-100);font-size:0.74rem;color:var(--gray-600);}
+    .manual-to strong{color:var(--black);}
+    .manual-textarea{padding:0.85rem 1.1rem;font-size:0.78rem;font-family:var(--font-body);color:var(--black);line-height:1.72;border:none;outline:none;resize:none;min-height:160px;width:100%;}
+    .manual-footer{padding:0.65rem 1.1rem;border-top:1px solid var(--gray-100);display:flex;justify-content:flex-end;gap:0.5rem;}
+    .manual-cancel{background:white;color:var(--gray-600);border:1px solid var(--gray-200);border-radius:9999px;padding:0.42rem 0.9rem;font-size:0.73rem;font-weight:600;cursor:pointer;}
+    .manual-send{background:var(--navy);color:white;border:none;border-radius:9999px;padding:0.42rem 0.9rem;font-size:0.73rem;font-weight:600;cursor:pointer;}
+    .manual-send:hover{background:var(--navy-mid);}
+
+    /* TOAST */
+    .toast-wrap{position:fixed;bottom:1.25rem;right:1.25rem;display:flex;flex-direction:column;gap:0.4rem;z-index:200;}
+    .toast{background:var(--black);color:white;padding:0.6rem 1rem;border-radius:0.65rem;font-size:0.76rem;font-weight:500;box-shadow:0 6px 20px rgba(0,0,0,0.18);display:flex;align-items:center;gap:0.4rem;animation:tIn .25s ease;max-width:280px;}
+    .toast.success{background:#15803d;}
+    .toast.info{background:var(--navy);}
+    .toast.warn{background:var(--yellow-text);}
+    @keyframes tIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+    ::-webkit-scrollbar{width:3px;height:3px;}
+    ::-webkit-scrollbar-track{background:transparent;}
+    ::-webkit-scrollbar-thumb{background:var(--gray-200);border-radius:99px;}
+  </style>
+</head>
+<body>
+
+<div class="demo-banner">İnteraktif Demo — <span>LoopCan Mail Otomasyon Paneli</span></div>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="tb-logo">
+      <div class="tb-logo-dot"></div>
+      <span class="tb-logo-text">LoopCan</span>
+    </div>
+    <div class="tb-divider"></div>
+    <span class="tb-title">Mail Otomasyon Paneli</span>
+  </div>
+  <div class="topbar-right">
+    <div class="tb-live"><div class="tb-live-dot"></div>SİSTEM AKTİF</div>
+    <span class="tb-clock" id="clock">--:--:--</span>
+    <button class="notif-btn" id="notifBtn" onclick="clearNotifs()">
+      <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      <span class="notif-badge hidden" id="notifBadge">0</span>
+    </button>
+  </div>
+</div>
+
+<!-- STATS -->
+<div class="statsbar">
+  <div class="stat-card">
+    <div class="stat-icon si-blue"><svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div>
+    <div><div class="stat-num" id="sTotal">8</div><div class="stat-label">Gelen Mail</div></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon si-yellow"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+    <div><div class="stat-num" id="sWaiting">4</div><div class="stat-label">Bekliyor</div></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon si-green"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+    <div><div class="stat-num" id="sSent">3</div><div class="stat-label">Gönderildi</div></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon si-gray"><svg viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg></div>
+    <div><div class="stat-num" id="sHeld">1</div><div class="stat-label">Askıda</div></div>
+  </div>
+</div>
+
+<!-- PANELS -->
+<div class="panels">
+
+  <!-- LEFT -->
+  <div class="left-sidebar" id="leftSidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Mail Durumu</div>
+      <div class="sidebar-item active" data-type="status" data-val="all" onclick="setSideFilter('status','all')">
+        <div class="sidebar-item-left"><div class="sidebar-item-dot dot-all"></div><span class="sidebar-item-label">Tümü</span></div>
+        <span class="sidebar-item-count" id="cnt-all">8</span>
+      </div>
+      <div class="sidebar-item" data-type="status" data-val="waiting" onclick="setSideFilter('status','waiting')">
+        <div class="sidebar-item-left"><div class="sidebar-item-dot dot-waiting"></div><span class="sidebar-item-label">Bekliyor</span></div>
+        <span class="sidebar-item-count" id="cnt-waiting">4</span>
+      </div>
+      <div class="sidebar-item" data-type="status" data-val="approved" onclick="setSideFilter('status','approved')">
+        <div class="sidebar-item-left"><div class="sidebar-item-dot dot-approved"></div><span class="sidebar-item-label">Onaylandı</span></div>
+        <span class="sidebar-item-count" id="cnt-approved">1</span>
+      </div>
+      <div class="sidebar-item" data-type="status" data-val="held" onclick="setSideFilter('status','held')">
+        <div class="sidebar-item-left"><div class="sidebar-item-dot dot-held"></div><span class="sidebar-item-label">Askıda</span></div>
+        <span class="sidebar-item-count" id="cnt-held">1</span>
+      </div>
+      <div class="sidebar-item" data-type="status" data-val="sent" onclick="setSideFilter('status','sent')">
+        <div class="sidebar-item-left"><div class="sidebar-item-dot dot-sent"></div><span class="sidebar-item-label">Gönderildi</span></div>
+        <span class="sidebar-item-count" id="cnt-sent">2</span>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Kategoriler</div>
+      <div class="sidebar-item" data-type="cat" data-val="Fiyat Talebi" onclick="setSideFilter('cat','Fiyat Talebi')">
+        <div class="sidebar-item-left"><div class="sidebar-item-dot cat-fiyat"></div><span class="sidebar-item-label">Fiyat Talebi</span></div>
+        <span class="sidebar-item-count" id="cnt-cat-Fiyat Talebi">2</span>
+      </div>
+      <div class="sidebar-item" data-type="cat" data-val="Toplantı Talebi" onclick="setSideFilter('cat','Toplantı Talebi')">
+        <div class="sidebar-item-left"><div class="sidebar-item-dot cat-toplanti"></div><span class="sidebar-item-label">Toplantı Talebi</span></div>
+        <span class="sidebar-item-count" id="cnt-cat-Toplantı Talebi">2</span>
+      </div>
+      <div class="sidebar-item" data-type="cat" data-val="Teknik Soru" onclick="setSideFilter('cat','Teknik Soru')">
+        <div class="sidebar-item-left"><div class="sidebar-item-dot cat-teknik"></div><span class="sidebar-item-label">Teknik Soru</span></div>
+        <span class="sidebar-item-count" id="cnt-cat-Teknik Soru">1</span>
+      </div>
+      <div class="sidebar-item" data-type="cat" data-val="Sözleşme" onclick="setSideFilter('cat','Sözleşme')">
+        <div class="sidebar-item-left"><div class="sidebar-item-dot cat-sozlesme"></div><span class="sidebar-item-label">Sözleşme</span></div>
+        <span class="sidebar-item-count" id="cnt-cat-Sözleşme">1</span>
+      </div>
+      <div class="sidebar-item" data-type="cat" data-val="Teşekkür" onclick="setSideFilter('cat','Teşekkür')">
+        <div class="sidebar-item-left"><div class="sidebar-item-dot cat-tesekkur"></div><span class="sidebar-item-label">Teşekkür</span></div>
+        <span class="sidebar-item-count" id="cnt-cat-Teşekkür">1</span>
+      </div>
+      <div class="sidebar-item" data-type="cat" data-val="Referans" onclick="setSideFilter('cat','Referans')">
+        <div class="sidebar-item-left"><div class="sidebar-item-dot cat-referans"></div><span class="sidebar-item-label">Referans</span></div>
+        <span class="sidebar-item-count" id="cnt-cat-Referans">1</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- MIDDLE: MAIL LIST -->
+  <div class="mail-panel">
+    <div class="mail-panel-header">
+      <div class="mail-panel-title" id="mailPanelTitle">Tüm Mailler</div>
+      <div class="mail-search">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" placeholder="Gönderen veya konu ara..." id="searchInput"/>
+      </div>
+    </div>
+    <div class="mail-list" id="mailList"></div>
+  </div>
+
+  <!-- RIGHT: DETAIL -->
+  <div class="detail-panel">
+    <div class="detail-empty" id="detailEmpty">
+      <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+      <p>Sol listeden bir mail seçin</p>
+    </div>
+    <div class="detail-wrap" id="detailWrap" style="display:none">
+      <div class="detail-head">
+        <div class="detail-head-row1">
+          <div class="detail-subject" id="dSubject"></div>
+          <div class="detail-status-badge" id="dBadge"></div>
+        </div>
+        <div class="detail-head-row2">
+          <div class="detail-meta"><strong>Kimden:</strong><span id="dFrom"></span></div>
+          <div class="detail-meta"><strong>Tarih:</strong><span id="dDate"></span></div>
+          <div class="detail-meta"><strong>Kategori:</strong><span id="dCat"></span></div>
+        </div>
+      </div>
+
+      <!-- SPLIT: original + draft -->
+      <div class="detail-split">
+        <!-- Original -->
+        <div class="split-pane">
+          <div class="split-pane-header">
+            <div class="split-pane-label">
+              <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+              Gelen Mail
+            </div>
+          </div>
+          <div class="split-body">
+            <div class="mail-body-text" id="dBody"></div>
+          </div>
+        </div>
+        <!-- Draft -->
+        <div class="split-pane">
+          <div class="split-pane-header">
+            <div class="split-pane-label draft-label">
+              <svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+              Otomatik Oluşturulan Yanıt Taslağı
+            </div>
+            <button class="split-edit-btn" id="editBtn" onclick="toggleEdit()">Düzenle</button>
+          </div>
+          <div class="split-body">
+            <textarea class="draft-textarea" id="draftTA" readonly></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- ACTIONS -->
+      <div class="detail-actions" id="dActions"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- MANUAL COMPOSE MODAL -->
+<div class="manual-overlay" id="manualOverlay" style="display:none" onclick="if(event.target===this)closeManual()">
+  <div class="manual-modal">
+    <div class="manual-modal-head">
+      <div class="manual-modal-title">Manuel Cevap Yaz</div>
+      <button class="manual-close" onclick="closeManual()">✕</button>
+    </div>
+    <div class="manual-to" id="manualTo"></div>
+    <textarea class="manual-textarea" id="manualTA" placeholder="Mesajınızı buraya yazın..."></textarea>
+    <div class="manual-footer">
+      <button class="manual-cancel" onclick="closeManual()">İptal</button>
+      <button class="manual-send" onclick="sendManual()">Gönder →</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script>
+// ─── CATEGORY CONFIG ──────────────────────────────────────────────────────────
+const catConfig = {
+  'Fiyat Talebi':    { cls:'cat-fiyat',    bg:'#ede9fe', color:'#6d28d9' },
+  'Toplantı Talebi': { cls:'cat-toplanti', bg:'#dbeafe', color:'#1d4ed8' },
+  'Teknik Soru':     { cls:'cat-teknik',   bg:'#fef3c7', color:'#92400e' },
+  'Sözleşme':        { cls:'cat-sozlesme', bg:'#fee2e2', color:'#991b1b' },
+  'Teşekkür':        { cls:'cat-tesekkur', bg:'#dcfce7', color:'#15803d' },
+  'Referans':        { cls:'cat-referans', bg:'#fce7f3', color:'#9d174d' },
+  'Onay':            { cls:'cat-diger',    bg:'#e0f2fe', color:'#0369a1' },
+  'Bilgi Talebi':    { cls:'cat-diger',    bg:'#f0fdf4', color:'#166534' },
+};
+
+// ─── DATA ─────────────────────────────────────────────────────────────────────
+let emails = [
+  { id:1, from:'Ahmet Yılmaz', fromEmail:'ahmet@yilmaztekstil.com', subject:'Fiyat teklifi hakkında', body:'Merhaba,\n\nGeçen hafta görüştüğümüz otomasyon sistemi için bir fiyat teklifi alabilir miyim? Özellikle WhatsApp entegrasyonu ve CRM bağlantısı konusunda detay almak istiyorum.\n\nTeşekkürler,\nAhmet Yılmaz', date:'09:42', status:'waiting', unread:true, cat:'Fiyat Talebi',
+    draft:'Merhaba Ahmet Bey,\n\nİlginiz için teşekkür ederiz. WhatsApp entegrasyonu ve CRM bağlantısı içeren paketimiz için size özel bir teklif hazırladık.\n\nDetayları görüşmek üzere 15 dakikalık bir online toplantı ayarlayabilir miyiz?\n\nSaygılarımızla,\nLoopCan Ekibi' },
+
+  { id:2, from:'Elif Kaya', fromEmail:'elif@kayalojistik.com', subject:'Toplantı tarihi için uygun musunuz?', body:'Merhaba,\n\nGeçen görüşmemizin ardından sizinle detaylı bir toplantı yapmak istiyorum. Bu hafta içinde uygun bir gün var mı?\n\nİyi çalışmalar,\nElif Kaya', date:'10:15', status:'approved', unread:false, cat:'Toplantı Talebi',
+    draft:'Merhaba Elif Hanım,\n\nElbette! Perşembe veya Cuma öğleden sonra uygun olur. Size takvim linki gönderiyorum, tercih ettiğiniz saati seçebilirsiniz.\n\nSaygılarımızla,\nLoopCan Ekibi' },
+
+  { id:3, from:'Mert Demir', fromEmail:'mert@demirinsaat.com', subject:'Teklif için ek sorularım var', body:'Merhaba,\n\nTeklifi inceledim. İnşaat sektörüne özel CRM entegrasyonu konusunda ek bilgi almak istiyorum. Şantiye takibi ve taşeron yönetimi gibi süreçleri de otomatize edebilir misiniz?\n\nMert Demir', date:'11:03', status:'waiting', unread:true, cat:'Teknik Soru',
+    draft:'Merhaba Mert Bey,\n\nEvet, şantiye takibi ve taşeron yönetimi dahil olmak üzere inşaat sektörüne özel otomasyon çözümleri sunuyoruz. Bu konuları detaylı ele almak için 30 dakikalık bir demo toplantısı önerebilirim.\n\nSaygılarımızla,\nLoopCan Ekibi' },
+
+  { id:4, from:'Seda Arslan', fromEmail:'seda@arslandanismanlik.com', subject:'Sözleşme taslağı hakkında', body:'Merhaba,\n\nGönderdiğiniz sözleşme taslağını inceledim. Madde 4\'te belirtilen destek süresi konusunda biraz daha esneklik mümkün mü?\n\nSeda Arslan', date:'13:27', status:'held', unread:false, cat:'Sözleşme',
+    draft:'Merhaba Seda Hanım,\n\nGeri bildiriminiz için teşekkür ederiz. Madde 4 konusunda hukuk ekibimizle görüştükten sonra size dönüş yapacağız. En geç yarın öğlen bilgi vereceğiz.\n\nSaygılarımızla,\nLoopCan Ekibi' },
+
+  { id:5, from:'Ahmet Yılmaz', fromEmail:'ahmet@yilmaztekstil.com', subject:'Demo toplantısı onayı', body:'Merhaba,\n\nGönderdiğiniz takvim linkinden toplantıyı Cuma 14:00 için seçtim. Görüşürüz!\n\nAhmet Yılmaz', date:'14:52', status:'sent', unread:false, cat:'Onay',
+    draft:'Merhaba Ahmet Bey,\n\nCuma 14:00 için toplantı talebinizi aldık. Takvim davetinizi az önce gönderdik. Görüşmek üzere!\n\nLoopCan Ekibi' },
+
+  { id:6, from:'Burak Çelik', fromEmail:'burak@celikmedikal.com', subject:'Teşekkür — mükemmel hizmet', body:'Merhaba LoopCan ekibi,\n\nKurduğunuz sistem ilk haftadan itibaren harika çalışıyor. Özellikle WhatsApp otomasyonu satış ekibimizin işini inanılmaz kolaylaştırdı. Teşekkürler!\n\nBurak Çelik', date:'16:10', status:'sent', unread:false, cat:'Teşekkür',
+    draft:'Merhaba Burak Bey,\n\nBu güzel geri dönüşünüz için çok teşekkür ederiz! Ekibimizi çok mutlu etti. Herhangi bir ihtiyacınızda buradayız.\n\nLoopCan Ekibi' },
+
+  { id:7, from:'Elif Kaya', fromEmail:'elif@kayalojistik.com', subject:'Ek modül fiyatı nedir?', body:'Merhaba,\n\nToplantıda bahsettiğiniz otomatik raporlama modülünün fiyatı nedir? Aylık mı yoksa yıllık paket mi tercih edilmeli?\n\nElif Kaya', date:'17:05', status:'waiting', unread:true, cat:'Fiyat Talebi',
+    draft:'Merhaba Elif Hanım,\n\nRaporlama modülü aylık 490 TL veya yıllık 4.900 TL (2 ay ücretsiz) olarak sunulmaktadır. Her iki seçenek için de detaylı özellik listesini paylaşabilirim.\n\nSaygılarımızla,\nLoopCan Ekibi' },
+
+  { id:8, from:'Mert Demir', fromEmail:'mert@demirinsaat.com', subject:'Referans verebilir misiniz?', body:'Merhaba,\n\nKararımı vermeden önce inşaat veya üretim sektöründen referans gösterebilir misiniz? Gerçek kullanıcı deneyimlerini duymak istiyorum.\n\nMert Demir', date:'17:44', status:'waiting', unread:true, cat:'Referans',
+    draft:'Merhaba Mert Bey,\n\nEvet, inşaat sektöründen 3 referansımız mevcut. İzinleri dahilinde iletişim bilgilerini paylaşabiliriz. Ayrıca yakında yayınlayacağımız vaka çalışmalarımız da var.\n\nSaygılarımızla,\nLoopCan Ekibi' },
+];
+
+const autoPool = [
+  { from:'Kemal Şahin', fromEmail:'kemal@sahinholding.com', subject:'Bilgi almak istiyorum', body:'Merhaba,\n\nWeb sitenizden formu doldurdum. Otomasyonun satış sürecimize nasıl entegre olacağını merak ediyorum. Kısa bir görüşme ayarlayabilir miyiz?\n\nKemal Şahin', cat:'Bilgi Talebi', draft:'Merhaba Kemal Bey,\n\nFormumuzu doldurduğunuz için teşekkür ederiz! Size özel bir demo toplantısı ayarlayabiliriz. Müsait olduğunuz zamanı paylaşır mısınız?\n\nSaygılarımızla,\nLoopCan Ekibi' },
+  { from:'Ayşe Yıldız', fromEmail:'ayse@yildizgida.com', subject:'WhatsApp entegrasyonu mümkün mü?', body:'Merhaba,\n\nMüşterilerimizle WhatsApp üzerinden iletişim kuruyoruz. Bu süreci otomatize etmek mümkün mü?\n\nAyşe Yıldız', cat:'Teknik Soru', draft:'Merhaba Ayşe Hanım,\n\nEvet! WhatsApp Business API entegrasyonumuz mevcut. Tüm iletişiminizi tek bir panelden yönetebilirsiniz. Demo ayarlayalım mı?\n\nSaygılarımızla,\nLoopCan Ekibi' },
+  { from:'Tolga Aksoy', fromEmail:'tolga@aksoyotomotiv.com', subject:'Demo görmek istiyorum', body:'Merhaba,\n\nÜrününüzü canlı görmek istiyorum. Bu hafta içinde bir demo ayarlayabilir misiniz?\n\nTolga Aksoy', cat:'Toplantı Talebi', draft:'Merhaba Tolga Bey,\n\nDemo talebinizi aldık! Bu hafta Çarşamba veya Perşembe öğleden sonra uygun olur. Hangi zaman sizin için daha uygun?\n\nSaygılarımızla,\nLoopCan Ekibi' },
+];
+
+// ─── STATE ────────────────────────────────────────────────────────────────────
+let state = {
+  filterType: 'status',
+  filterVal: 'all',
+  search: '',
+  selectedId: null,
+  editing: false,
+  notifCount: 0,
+  autoIdx: 0,
+  nextId: 9,
+};
+
+// ─── CLOCK ───────────────────────────────────────────────────────────────────
+setInterval(() => { document.getElementById('clock').textContent = new Date().toLocaleTimeString('tr-TR'); }, 1000);
+document.getElementById('clock').textContent = new Date().toLocaleTimeString('tr-TR');
+
+// ─── STATS & COUNTS ──────────────────────────────────────────────────────────
+function updateStats() {
+  document.getElementById('sTotal').textContent    = emails.length;
+  document.getElementById('sWaiting').textContent  = emails.filter(e=>e.status==='waiting').length;
+  document.getElementById('sSent').textContent     = emails.filter(e=>e.status==='sent'||e.status==='approved').length;
+  document.getElementById('sHeld').textContent     = emails.filter(e=>e.status==='held').length;
+
+  // sidebar counts
+  const setC = (id, val) => { const el=document.getElementById(id); if(el) el.textContent=val; };
+  setC('cnt-all',     emails.length);
+  setC('cnt-waiting', emails.filter(e=>e.status==='waiting').length);
+  setC('cnt-approved',emails.filter(e=>e.status==='approved').length);
+  setC('cnt-held',    emails.filter(e=>e.status==='held').length);
+  setC('cnt-sent',    emails.filter(e=>e.status==='sent').length);
+  Object.keys(catConfig).forEach(cat => {
+    setC('cnt-cat-'+cat, emails.filter(e=>e.cat===cat).length);
+  });
+}
+
+// ─── SIDEBAR FILTER ───────────────────────────────────────────────────────────
+function setSideFilter(type, val) {
+  state.filterType = type;
+  state.filterVal  = val;
+  state.selectedId = null;
+  document.querySelectorAll('.sidebar-item').forEach(el => {
+    el.classList.toggle('active', el.dataset.type===type && el.dataset.val===val);
+  });
+  const titles = { all:'Tüm Mailler', waiting:'Bekleyen Mailler', approved:'Onaylanan Mailler', held:'Askıdaki Mailler', sent:'Gönderilen Mailler' };
+  document.getElementById('mailPanelTitle').textContent = type==='status' ? (titles[val]||val) : val+' Mailleri';
+  renderMailList();
+  renderDetail();
+}
+
+// ─── MAIL LIST ────────────────────────────────────────────────────────────────
+const statusPillMap = { waiting:'sp-waiting', approved:'sp-approved', held:'sp-held', sent:'sp-sent' };
+const statusLabelMap = { waiting:'Bekliyor', approved:'Onaylandı', held:'Askıda', sent:'Gönderildi' };
+
+function getFiltered() {
+  return emails.filter(e => {
+    const sm = state.filterType==='status' ? (state.filterVal==='all' || e.status===state.filterVal) : e.cat===state.filterVal;
+    const qm = !state.search || e.from.toLowerCase().includes(state.search.toLowerCase()) || e.subject.toLowerCase().includes(state.search.toLowerCase());
+    return sm && qm;
+  });
+}
+
+function renderMailList() {
+  const list = document.getElementById('mailList');
+  const filtered = getFiltered();
+  if (!filtered.length) {
+    list.innerHTML = `<div style="padding:2rem;text-align:center;color:var(--gray-400);font-size:0.76rem;">Mail bulunamadı</div>`;
+    return;
+  }
+  list.innerHTML = filtered.map(e => {
+    const cc = catConfig[e.cat] || catConfig['Bilgi Talebi'];
+    return `<div class="mail-item ${state.selectedId===e.id?'active':''} ${e.unread?'unread':''}" onclick="selectMail(${e.id})">
+      ${e.unread?'<div class="unread-bar"></div>':''}
+      <div class="mail-item-row1">
+        <div class="mail-item-from">${e.from}</div>
+        <div class="mail-item-time">${e.date}</div>
+      </div>
+      <div class="mail-item-subject">${e.subject}</div>
+      <div class="mail-item-bottom">
+        <span class="cat-badge" style="background:${cc.bg};color:${cc.color}">${e.cat}</span>
+        <span class="status-pill ${statusPillMap[e.status]}" style="margin-left:auto">${statusLabelMap[e.status]}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+document.getElementById('searchInput').addEventListener('input', e => { state.search=e.target.value; renderMailList(); });
+
+// ─── DETAIL ───────────────────────────────────────────────────────────────────
+function selectMail(id) {
+  state.selectedId = id;
+  state.editing = false;
+  const e = emails.find(x=>x.id===id);
+  if (e) e.unread = false;
+  renderMailList();
+  renderDetail();
+}
+
+function renderDetail() {
+  const empty = document.getElementById('detailEmpty');
+  const wrap  = document.getElementById('detailWrap');
+  if (!state.selectedId) { empty.style.display='flex'; wrap.style.display='none'; return; }
+  const e = emails.find(x=>x.id===state.selectedId);
+  if (!e) return;
+  empty.style.display='none';
+  wrap.style.display='flex';
+
+  document.getElementById('dSubject').textContent = e.subject;
+  const badge = document.getElementById('dBadge');
+  const badgeCls = { waiting:'dsb-waiting', approved:'dsb-approved', held:'dsb-held', sent:'dsb-sent' };
+  const badgeLbl = { waiting:'⏳ Bekliyor', approved:'✓ Onaylandı', held:'⏸ Askıda', sent:'✉ Gönderildi' };
+  badge.className = 'detail-status-badge ' + badgeCls[e.status];
+  badge.textContent = badgeLbl[e.status];
+
+  document.getElementById('dFrom').textContent = ` ${e.from} <${e.fromEmail}>`;
+  document.getElementById('dDate').textContent = ` Bugün, ${e.date}`;
+  const cc = catConfig[e.cat]||catConfig['Bilgi Talebi'];
+  document.getElementById('dCat').innerHTML = ` <span class="cat-badge" style="background:${cc.bg};color:${cc.color};font-size:0.65rem;padding:0.1rem 0.5rem;border-radius:9999px;font-weight:700;">${e.cat}</span>`;
+
+  document.getElementById('dBody').textContent = e.body;
+
+  const ta = document.getElementById('draftTA');
+  ta.value = e.draft;
+  ta.readOnly = !state.editing;
+
+  const editBtn = document.getElementById('editBtn');
+  const isFinal = e.status==='sent'||e.status==='approved';
+  if (isFinal) {
+    editBtn.style.display = 'none';
+  } else {
+    editBtn.style.display = 'inline-flex';
+    editBtn.textContent = state.editing ? 'Kilitle' : 'Düzenle';
+    editBtn.classList.toggle('active', state.editing);
+  }
+
+  const actions = document.getElementById('dActions');
+  if (isFinal) {
+    actions.innerHTML = `<span class="ab-sent-msg">Bu mail ${e.status==='sent'?'gönderildi':'onaylandı'} — daha fazla işlem yapılamaz.</span>`;
+  } else {
+    actions.innerHTML = `
+      <button class="act-btn ab-approve" onclick="approveMail(${e.id})">
+        <svg viewBox="0 0 24 24"><polyline points="22 2 15 22 11 13 2 9 22 2"/></svg>Onayla & Gönder
+      </button>
+      <button class="act-btn ab-edit" onclick="toggleEdit()">
+        <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>${state.editing?'Taslağı Kilitle':'Taslağı Düzenle'}
+      </button>
+      <button class="act-btn ab-hold" onclick="holdMail(${e.id})">
+        <svg viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>${e.status==='held'?'Beklemeye Al':'Askıya Al'}
+      </button>
+      <button class="act-btn ab-manual" onclick="openManual(${e.id})">
+        <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Manuel Yaz
+      </button>`;
+  }
+}
+
+function toggleEdit() {
+  state.editing = !state.editing;
+  const ta = document.getElementById('draftTA');
+  ta.readOnly = !state.editing;
+  if (state.editing) { ta.focus(); ta.setSelectionRange(ta.value.length,ta.value.length); toast('info','Taslak düzenleme açık — istediğiniz gibi değiştirebilirsiniz'); }
+  renderDetail();
+}
+
+function approveMail(id) {
+  const e = emails.find(x=>x.id===id);
+  if (!e) return;
+  const ta = document.getElementById('draftTA');
+  if (ta) e.draft = ta.value;
+  e.status = 'sent';
+  state.editing = false;
+  updateStats();
+  renderMailList();
+  renderDetail();
+  toast('success','✓ Mail başarıyla gönderildi!');
+}
+
+function holdMail(id) {
+  const e = emails.find(x=>x.id===id);
+  if (!e) return;
+  e.status = e.status==='held' ? 'waiting' : 'held';
+  updateStats();
+  renderMailList();
+  renderDetail();
+  toast('warn', e.status==='held' ? 'Mail askıya alındı' : 'Mail beklemeye alındı');
+}
+
+// ─── MANUAL MODAL ─────────────────────────────────────────────────────────────
+let manualEmailId = null;
+function openManual(id) {
+  manualEmailId = id;
+  const e = emails.find(x=>x.id===id);
+  document.getElementById('manualTo').innerHTML = `<strong>Kime:</strong> ${e.from} &lt;${e.fromEmail}&gt;`;
+  document.getElementById('manualTA').value = '';
+  document.getElementById('manualOverlay').style.display = 'flex';
+  setTimeout(()=>document.getElementById('manualTA').focus(), 50);
+}
+function closeManual() { document.getElementById('manualOverlay').style.display='none'; }
+function sendManual() {
+  const text = document.getElementById('manualTA').value.trim();
+  if (!text) { toast('warn','Mesaj boş olamaz'); return; }
+  const e = emails.find(x=>x.id===manualEmailId);
+  if (e) { e.status='sent'; e.draft=text; }
+  closeManual();
+  updateStats();
+  renderMailList();
+  renderDetail();
+  toast('success','✓ Manuel cevap gönderildi!');
+}
+
+// ─── NOTIFICATIONS ────────────────────────────────────────────────────────────
+function clearNotifs() {
+  state.notifCount=0;
+  document.getElementById('notifBadge').classList.add('hidden');
+  toast('info','Bildirimler okundu');
+}
+function addNotif() {
+  state.notifCount++;
+  const b=document.getElementById('notifBadge');
+  b.classList.remove('hidden');
+  b.textContent=state.notifCount;
+  const btn=document.getElementById('notifBtn');
+  btn.classList.add('notif-shake');
+  setTimeout(()=>btn.classList.remove('notif-shake'),400);
+}
+
+// ─── AUTO EMAIL (2 DAKİKA) ────────────────────────────────────────────────────
+function addAutoEmail() {
+  const tmpl = autoPool[state.autoIdx % autoPool.length];
+  state.autoIdx++;
+  const now=new Date();
+  const newMail = {
+    ...tmpl,
+    id: state.nextId++,
+    date: now.toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'}),
+    status:'waiting',
+    unread:true,
+  };
+  emails.unshift(newMail);
+  updateStats();
+  renderMailList();
+  addNotif();
+  toast('info',`📬 Yeni mail: ${newMail.from} — ${newMail.subject}`);
+}
+setInterval(addAutoEmail, 120000); // 2 dakika
+
+// ─── TOAST ────────────────────────────────────────────────────────────────────
+function toast(type, msg) {
+  const wrap=document.getElementById('toastWrap');
+  const el=document.createElement('div');
+  el.className=`toast ${type}`;
+  el.textContent=msg;
+  wrap.appendChild(el);
+  setTimeout(()=>el.remove(),3000);
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+updateStats();
+renderMailList();
+renderDetail();
+</script>
+</body>
+</html>

@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>LoopCan — Haftalık Raporlama Otomasyonu</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --navy:#0d1f4e; --navy-mid:#162b6a; --navy-light:#e8ecf7;
+      --white:#fff;
+      --gray-100:#eaecf0; --gray-200:#d0d5de; --gray-400:#8a96a8; --gray-600:#4a5568;
+      --black:#0a0c10;
+      --green:#22c55e; --green-bg:#dcfce7; --green-text:#15803d;
+      --sheets:#34a853; --sheets-bg:#e6f4ea;
+      --orange:#f97316; --orange-bg:#ffedd5; --orange-text:#c2410c;
+      --blue:#3b82f6; --blue-bg:#dbeafe; --blue-text:#1d4ed8;
+      --purple:#7c3aed; --purple-bg:#f3e8ff; --purple-text:#7c3aed;
+      --slack:#4a154b; --slack-bg:#f5e6f5;
+      --red-bg:#fee2e2; --red-text:#991b1b;
+      --font-display:'Instrument Serif',serif;
+      --font-body:'Inter',sans-serif;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html{-webkit-font-smoothing:antialiased;}
+    body{font-family:var(--font-body);background:var(--white);color:var(--black);padding:4rem 1.5rem 5rem;}
+
+    .section-tag{display:inline-flex;align-items:center;gap:.4rem;background:var(--sheets-bg);color:var(--sheets);padding:.28rem .9rem;border-radius:9999px;font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:1rem;}
+    .section-h{font-family:var(--font-display);font-size:clamp(1.85rem,2rem + 1.2vw,3.1rem);color:var(--black);line-height:1.12;letter-spacing:-.025em;margin:0 0 .75rem;}
+    .section-h em{font-style:italic;color:var(--sheets);}
+    .section-sub{font-size:1rem;color:var(--gray-600);line-height:1.78;max-width:520px;}
+
+    /* SCHEDULE BADGE */
+    .schedule-wrap{display:inline-flex;align-items:center;gap:1rem;margin-top:1.25rem;flex-wrap:wrap;justify-content:center;}
+    .schedule-chip{display:inline-flex;align-items:center;gap:.45rem;background:var(--navy);color:white;border-radius:9999px;padding:.38rem 1rem;font-size:.75rem;font-weight:600;}
+    .schedule-chip svg{width:13px;height:13px;fill:none;stroke:white;stroke-width:2;stroke-linecap:round;}
+    .schedule-chip.alt{background:var(--sheets-bg);color:var(--sheets);}
+    .schedule-chip.alt svg{stroke:var(--sheets);}
+
+    /* STATUS BAR */
+    .status-bar{display:flex;align-items:center;justify-content:center;gap:1.5rem;margin:1.5rem 0 0;flex-wrap:wrap;}
+    .status-item{display:flex;align-items:center;gap:.4rem;font-size:.74rem;font-weight:600;color:var(--gray-400);}
+    .status-dot{width:8px;height:8px;border-radius:50%;}
+    .status-item.active-step{color:var(--navy);}
+    .status-item.active-step .status-dot{animation:dp 1s infinite;}
+    .status-item.done-step{color:var(--green-text);}
+    @keyframes dp{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.4);opacity:.7}}
+    #stepLabel{font-size:.78rem;font-weight:700;color:var(--sheets);background:var(--sheets-bg);padding:.28rem .85rem;border-radius:9999px;transition:all .3s;}
+
+    /* CANVAS */
+    .canvas-outer{max-width:940px;margin:2.5rem auto 0;position:relative;user-select:none;}
+    .canvas-inner{position:relative;width:100%;height:520px;}
+    .conn-svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible;}
+
+    .conn-bg{fill:none;stroke:var(--gray-200);stroke-width:2;stroke-dasharray:6 4;}
+    .conn-line{fill:none;stroke:var(--sheets);stroke-width:2.5;stroke-linecap:round;opacity:0;transition:opacity .2s;}
+    .conn-line.active{opacity:1;}
+    .travel-circle{fill:var(--sheets);opacity:0;}
+
+    /* NODES */
+    .node{
+      position:absolute;width:210px;
+      background:white;border:1.5px solid var(--gray-200);border-radius:14px;
+      padding:12px 14px;display:flex;align-items:center;gap:10px;
+      transition:border-color .3s,box-shadow .3s,transform .25s;
+    }
+    .node:hover{border-color:var(--gray-400);box-shadow:0 4px 16px rgba(0,0,0,.07);transform:translateY(-1px);}
+    .node.state-idle{border-color:var(--gray-200);}
+    .node.state-running{border-color:var(--sheets);box-shadow:0 0 0 3px rgba(52,168,83,.15),0 4px 20px rgba(52,168,83,.1);}
+    .node.state-done{border-color:var(--green);box-shadow:0 0 0 3px rgba(34,197,94,.1);}
+    .node.state-done .node-title{color:var(--green-text);}
+    .node-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+    .node-icon svg{width:18px;height:18px;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+    .ni-sheets{background:var(--sheets-bg);}   .ni-sheets svg{stroke:var(--sheets);}
+    .ni-blue{background:var(--blue-bg);}       .ni-blue svg{stroke:var(--blue-text);}
+    .ni-navy{background:var(--navy-light);}    .ni-navy svg{stroke:var(--navy);}
+    .ni-purple{background:var(--purple-bg);}   .ni-purple svg{stroke:var(--purple-text);}
+    .ni-slack{background:var(--slack-bg);}     .ni-slack svg{stroke:var(--slack);}
+    .ni-orange{background:var(--orange-bg);}   .ni-orange svg{stroke:var(--orange-text);}
+    .ni-green{background:var(--green-bg);}     .ni-green svg{stroke:var(--green-text);}
+    .node-info{flex:1;min-width:0;}
+    .node-title{font-size:.82rem;font-weight:700;color:var(--black);line-height:1.2;}
+    .node-sub{font-size:.68rem;color:var(--gray-400);margin-top:.15rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .node-status-dot{width:7px;height:7px;border-radius:50%;background:var(--gray-200);flex-shrink:0;transition:background .3s;}
+    .node.state-running .node-status-dot{background:var(--sheets);animation:dp 1s infinite;}
+    .node.state-done .node-status-dot{background:var(--green);}
+
+    /* DATA COUNTER on trigger node */
+    .data-counter{
+      position:absolute;top:-10px;right:-10px;
+      background:var(--navy);color:white;
+      font-size:.6rem;font-weight:700;
+      padding:.15rem .45rem;border-radius:9999px;
+      border:2px solid white;
+      opacity:0;transition:opacity .3s;
+    }
+    .data-counter.visible{opacity:1;}
+
+    /* REPORT PREVIEW CARD */
+    .report-card{
+      position:absolute;right:-200px;top:50%;transform:translateY(-50%);
+      width:180px;background:white;border:1px solid var(--gray-200);
+      border-radius:10px;padding:10px;
+      opacity:0;transition:opacity .4s,transform .4s;
+      box-shadow:0 4px 16px rgba(0,0,0,.08);
+    }
+    .report-card.visible{opacity:1;transform:translateY(-50%) translateX(-10px);}
+    .rc-title{font-size:.62rem;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.5rem;}
+    .rc-bar-row{display:flex;align-items:center;gap:.4rem;margin-bottom:.3rem;}
+    .rc-label{font-size:.6rem;color:var(--gray-600);width:40px;flex-shrink:0;}
+    .rc-bar-wrap{flex:1;height:6px;background:var(--gray-100);border-radius:99px;overflow:hidden;}
+    .rc-bar{height:100%;border-radius:99px;transition:width 1s ease;}
+
+    /* PATH LABELS */
+    .path-label{font-size:.61rem;font-weight:600;fill:var(--gray-400);font-family:'Inter',sans-serif;}
+
+    /* LOOP BAR */
+    .loop-bar{max-width:940px;margin:1.25rem auto 0;display:flex;align-items:center;gap:.75rem;}
+    .loop-track{flex:1;height:3px;background:var(--gray-100);border-radius:99px;overflow:hidden;}
+    .loop-fill{height:100%;background:var(--sheets);border-radius:99px;width:0%;transition:width .1s linear;}
+    .loop-label{font-size:.7rem;font-weight:600;color:var(--gray-400);white-space:nowrap;}
+    .loop-count{font-size:.7rem;font-weight:700;color:var(--sheets);white-space:nowrap;}
+  </style>
+</head>
+<body>
+
+<div style="text-align:center;">
+  <span class="section-tag">
+    <svg width="12" height="12" viewBox="0 0 24 24" style="fill:var(--sheets);stroke:none"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14H7v-2h5v2zm5-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+    Raporlama Otomasyonu
+  </span>
+  <h2 class="section-h">Her Pazartesi sabahı, <em>rapor hazır</em></h2>
+  <p class="section-sub" style="margin:0 auto;">Siz kahvenizi içerken sistem verileri topluyor, raporu oluşturuyor ve ilgililere gönderiyor.</p>
+
+  <div class="schedule-wrap">
+    <div class="schedule-chip">
+      <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      Her Pazartesi 08:00
+    </div>
+    <div class="schedule-chip alt">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      Tam otomatik — müdahale gerektirmez
+    </div>
+  </div>
+
+  <div class="status-bar">
+    <div class="status-item" id="si0"><div class="status-dot" style="background:var(--gray-200)"></div>Bekleniyor</div>
+    <div class="status-item" id="si1"><div class="status-dot" style="background:var(--sheets)"></div>Veri Toplandı</div>
+    <div class="status-item" id="si2"><div class="status-dot" style="background:var(--blue-text)"></div>Rapor Oluştu</div>
+    <div class="status-item" id="si3"><div class="status-dot" style="background:var(--navy)"></div>Gönderildi</div>
+    <div class="status-item" id="si4"><div class="status-dot" style="background:var(--green)"></div>Tamamlandı</div>
+    <span id="stepLabel">Zamanlayıcı bekliyor...</span>
+  </div>
+</div>
+
+<!-- CANVAS -->
+<div class="canvas-outer">
+  <div class="canvas-inner" id="canvas">
+
+    <svg class="conn-svg" viewBox="0 0 900 520">
+      <!-- BG -->
+      <path class="conn-bg" d="M 360 108 C 360 134, 360 134, 360 160"/>
+      <path class="conn-bg" d="M 360 228 C 360 258, 120 258, 120 278"/>
+      <path class="conn-bg" d="M 360 228 C 360 258, 360 258, 360 278"/>
+      <path class="conn-bg" d="M 360 228 C 360 258, 600 258, 600 278"/>
+      <path class="conn-bg" d="M 120 358 C 120 388, 360 388, 360 400"/>
+      <path class="conn-bg" d="M 360 358 C 360 388, 360 388, 360 400"/>
+      <path class="conn-bg" d="M 600 358 C 600 388, 360 388, 360 400"/>
+
+      <!-- ANIMATED LINES -->
+      <path class="conn-line" id="l1" d="M 360 108 C 360 134, 360 134, 360 160"/>
+      <path class="conn-line" id="l2" d="M 360 228 C 360 258, 120 258, 120 278"/>
+      <path class="conn-line" id="l3" d="M 360 228 C 360 258, 360 258, 360 278"/>
+      <path class="conn-line" id="l4" d="M 360 228 C 360 258, 600 258, 600 278"/>
+      <path class="conn-line" id="l5" d="M 120 358 C 120 388, 360 388, 360 400"/>
+      <path class="conn-line" id="l6" d="M 360 358 C 360 388, 360 388, 360 400"/>
+      <path class="conn-line" id="l7" d="M 600 358 C 600 388, 360 388, 360 400"/>
+
+      <!-- TRAVEL DOTS -->
+      <circle class="travel-circle" id="d1"><animateMotion id="am1" dur="0.65s" begin="indefinite" fill="freeze" calcMode="spline" keySplines="0.4 0 0.2 1"><mpath href="#l1"/></animateMotion></circle>
+      <circle class="travel-circle" id="d2"><animateMotion id="am2" dur="0.65s" begin="indefinite" fill="freeze" calcMode="spline" keySplines="0.4 0 0.2 1"><mpath href="#l2"/></animateMotion></circle>
+      <circle class="travel-circle" id="d3"><animateMotion id="am3" dur="0.65s" begin="indefinite" fill="freeze" calcMode="spline" keySplines="0.4 0 0.2 1"><mpath href="#l3"/></animateMotion></circle>
+      <circle class="travel-circle" id="d4"><animateMotion id="am4" dur="0.65s" begin="indefinite" fill="freeze" calcMode="spline" keySplines="0.4 0 0.2 1"><mpath href="#l4"/></animateMotion></circle>
+      <circle class="travel-circle" id="d5"><animateMotion id="am5" dur="0.65s" begin="indefinite" fill="freeze" calcMode="spline" keySplines="0.4 0 0.2 1"><mpath href="#l5"/></animateMotion></circle>
+      <circle class="travel-circle" id="d6"><animateMotion id="am6" dur="0.65s" begin="indefinite" fill="freeze" calcMode="spline" keySplines="0.4 0 0.2 1"><mpath href="#l6"/></animateMotion></circle>
+      <circle class="travel-circle" id="d7"><animateMotion id="am7" dur="0.65s" begin="indefinite" fill="freeze" calcMode="spline" keySplines="0.4 0 0.2 1"><mpath href="#l7"/></animateMotion></circle>
+
+      <!-- PATH LABELS -->
+      <text class="path-label" x="370" y="140">veri aktarıldı</text>
+      <text class="path-label" x="48"  y="261">satış</text>
+      <text class="path-label" x="318" y="261">finans</text>
+      <text class="path-label" x="556" y="261">operasyon</text>
+      <text class="path-label" x="148" y="392">✓</text>
+      <text class="path-label" x="364" y="392">✓</text>
+      <text class="path-label" x="558" y="392">✓</text>
+    </svg>
+
+    <!-- NODE 1: Zamanlayıcı / Tetikleyici -->
+    <div class="node state-idle" id="n1" style="left:255px;top:40px;position:absolute;">
+      <div class="node-icon ni-sheets">
+        <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      </div>
+      <div class="node-info">
+        <div class="node-title">Pazartesi 08:00</div>
+        <div class="node-sub">Zamanlayıcı tetiklendi</div>
+      </div>
+      <div class="node-status-dot"></div>
+      <div class="data-counter" id="dataCounter">247 satır</div>
+    </div>
+
+    <!-- NODE 2: Veri Toplama -->
+    <div class="node state-idle" id="n2" style="left:255px;top:160px;">
+      <div class="node-icon ni-sheets">
+        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      </div>
+      <div class="node-info">
+        <div class="node-title">Veri Topla</div>
+        <div class="node-sub" id="n2sub">Google Sheets'ten çekiliyor</div>
+      </div>
+      <div class="node-status-dot"></div>
+    </div>
+
+    <!-- NODE 3: Satış Raporu -->
+    <div class="node state-idle" id="n3" style="left:15px;top:278px;">
+      <div class="node-icon ni-navy">
+        <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      </div>
+      <div class="node-info">
+        <div class="node-title">Satış Raporu</div>
+        <div class="node-sub">Haftalık özet oluşturuldu</div>
+      </div>
+      <div class="node-status-dot"></div>
+    </div>
+
+    <!-- NODE 4: Finans Raporu -->
+    <div class="node state-idle" id="n4" style="left:255px;top:278px;">
+      <div class="node-icon ni-purple">
+        <svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      </div>
+      <div class="node-info">
+        <div class="node-title">Finans Raporu</div>
+        <div class="node-sub">Gelir & gider özeti</div>
+      </div>
+      <div class="node-status-dot"></div>
+    </div>
+
+    <!-- NODE 5: Operasyon -->
+    <div class="node state-idle" id="n5" style="left:495px;top:278px;">
+      <div class="node-icon ni-orange">
+        <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      </div>
+      <div class="node-info">
+        <div class="node-title">Operasyon Özeti</div>
+        <div class="node-sub">Görev & süreç verileri</div>
+      </div>
+      <div class="node-status-dot"></div>
+    </div>
+
+    <!-- NODE 6: Gönderim -->
+    <div class="node state-idle" id="n6" style="left:255px;top:400px;">
+      <div class="node-icon ni-green">
+        <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+      </div>
+      <div class="node-info">
+        <div class="node-title">Raporlar Teslim Edildi</div>
+        <div class="node-sub" id="n6sub">Mail + Slack bildirimi</div>
+      </div>
+      <div class="node-status-dot"></div>
+    </div>
+
+    <!-- REPORT PREVIEW (appears on n4 done) -->
+    <div class="report-card" id="reportCard" style="left:472px;top:278px;">
+      <div class="rc-title">Haftalık Özet</div>
+      <div class="rc-bar-row">
+        <span class="rc-label">Satış</span>
+        <div class="rc-bar-wrap"><div class="rc-bar" id="rb1" style="width:0%;background:#0d1f4e;"></div></div>
+      </div>
+      <div class="rc-bar-row">
+        <span class="rc-label">Gelir</span>
+        <div class="rc-bar-wrap"><div class="rc-bar" id="rb2" style="width:0%;background:#7c3aed;"></div></div>
+      </div>
+      <div class="rc-bar-row">
+        <span class="rc-label">Görev</span>
+        <div class="rc-bar-wrap"><div class="rc-bar" id="rb3" style="width:0%;background:#f97316;"></div></div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="loop-bar">
+    <span class="loop-label">Sonraki döngü</span>
+    <div class="loop-track"><div class="loop-fill" id="loopFill"></div></div>
+    <span class="loop-count" id="loopCount">Döngü #1</span>
+  </div>
+</div>
+
+<script>
+const setNode  = (id,s) => { document.getElementById(id).className='node state-'+s; };
+const showLine = (id)   => document.getElementById(id).classList.add('active');
+const hideAll  = ()     => ['l1','l2','l3','l4','l5','l6','l7'].forEach(l=>document.getElementById(l).classList.remove('active'));
+function travel(dId,aId){ const d=document.getElementById(dId); d.style.opacity='1'; document.getElementById(aId).beginElement(); setTimeout(()=>{d.style.opacity='0';},750); }
+function setStatus(idx){ document.querySelectorAll('.status-item').forEach((el,i)=>{ el.classList.remove('active-step','done-step'); if(i===idx)el.classList.add('active-step'); else if(i<idx)el.classList.add('done-step'); }); }
+function setLabel(t){ document.getElementById('stepLabel').textContent=t; }
+
+// weekly data variations
+const weeks = [
+  { rows:'247 satır', n2sub:'Google Sheets — Hafta 1', rb:[72,58,85], n6sub:'3 alıcıya gönderildi' },
+  { rows:'318 satır', n2sub:'Google Sheets — Hafta 2', rb:[88,64,70], n6sub:'4 alıcıya gönderildi' },
+  { rows:'193 satır', n2sub:'Google Sheets — Hafta 3', rb:[55,79,62], n6sub:'3 alıcıya gönderildi' },
+];
+let weekIdx = 0;
+let loopNum = 1;
+
+function resetAll(){
+  ['n1','n2','n3','n4','n5','n6'].forEach(n=>setNode(n,'idle'));
+  hideAll();
+  ['d1','d2','d3','d4','d5','d6','d7'].forEach(d=>{document.getElementById(d).style.opacity='0';});
+  document.getElementById('dataCounter').classList.remove('visible');
+  document.getElementById('reportCard').classList.remove('visible');
+  ['rb1','rb2','rb3'].forEach(b=>{document.getElementById(b).style.width='0%';});
+  setStatus(0);
+}
+
+function runSequence(){
+  resetAll();
+  const w = weeks[weekIdx % weeks.length];
+  weekIdx++;
+  document.getElementById('loopCount').textContent = 'Döngü #'+loopNum;
+  loopNum++;
+  document.getElementById('dataCounter').textContent = w.rows;
+  document.getElementById('n2sub').textContent = w.n2sub;
+  document.getElementById('n6sub').textContent = w.n6sub;
+
+  setLabel('Pazartesi 08:00 bekleniyor...');
+
+  const tl = [
+    [0,    ()=>{ setNode('n1','running'); setStatus(1); setLabel('Zamanlayıcı tetiklendi — veri toplama başlıyor...'); document.getElementById('dataCounter').classList.add('visible'); }],
+    [900,  ()=>{ showLine('l1'); travel('d1','am1'); }],
+    [1600, ()=>{ setNode('n1','done'); setNode('n2','running'); setStatus(2); setLabel('Google Sheets\'ten veriler çekiliyor...'); }],
+    [2500, ()=>{ showLine('l2'); travel('d2','am2'); showLine('l3'); travel('d3','am3'); showLine('l4'); travel('d4','am4'); setLabel('Rapor bölümleri oluşturuluyor...'); }],
+    [3300, ()=>{
+      setNode('n2','done'); setStatus(2);
+      setNode('n3','running'); setNode('n4','running'); setNode('n5','running');
+      setLabel('Satış, finans ve operasyon raporları hazırlanıyor...');
+      // show report card with bars
+      setTimeout(()=>{
+        document.getElementById('reportCard').classList.add('visible');
+        document.getElementById('rb1').style.width = w.rb[0]+'%';
+        document.getElementById('rb2').style.width = w.rb[1]+'%';
+        document.getElementById('rb3').style.width = w.rb[2]+'%';
+      }, 400);
+    }],
+    [4200, ()=>{ showLine('l5'); travel('d5','am5'); showLine('l6'); travel('d6','am6'); showLine('l7'); travel('d7','am7'); setStatus(3); setLabel('Raporlar gönderiliyor — mail + Slack...'); }],
+    [5000, ()=>{ setNode('n3','done'); setNode('n4','done'); setNode('n5','done'); setNode('n6','running'); }],
+    [5800, ()=>{ setNode('n6','done'); setStatus(4); setLabel('✓ Tüm raporlar teslim edildi — kimse beklemedi'); }],
+  ];
+  tl.forEach(([d,f])=>setTimeout(f,d));
+}
+
+// loop progress
+const LOOP_DUR = 9000;
+let pInterval=null, pStart=null;
+function startProgress(){
+  pStart=Date.now(); clearInterval(pInterval);
+  pInterval=setInterval(()=>{
+    const pct=Math.min(((Date.now()-pStart)/LOOP_DUR)*100,100);
+    document.getElementById('loopFill').style.width=pct+'%';
+    if(pct>=100){ clearInterval(pInterval); runSequence(); setTimeout(startProgress,100); }
+  },50);
+}
+
+runSequence();
+setTimeout(startProgress,100);
+</script>
+</body>
+</html>

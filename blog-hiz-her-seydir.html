@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dünyanın En Çok Görmezden Gelinen Satış Gerçeği: Hız Her Şeydir — LoopCan Blog</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --navy:#0d1f4e; --navy-dark:#080f28; --navy-mid:#162b6a;
+      --white:#ffffff; --gray-50:#f5f6f8; --gray-100:#eaecf0;
+      --gray-200:#d0d5de; --gray-400:#8a96a8; --gray-600:#4a5568; --black:#0a0c10;
+      --font-display:'Instrument Serif',serif;
+      --font-body:'Inter',sans-serif;
+      --font-brand:'Space Grotesk',sans-serif;
+    }
+    *,*::before,*::after{box-sizing:border-box;}
+    html{-webkit-font-smoothing:antialiased;scroll-behavior:smooth;}
+    body{font-family:var(--font-body);background:var(--white);color:var(--black);margin:0;padding:0;overflow-x:hidden;}
+
+    /* NAV */
+    .nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:1.1rem 2.5rem;display:flex;align-items:center;justify-content:space-between;background:var(--white);border-bottom:1px solid var(--gray-100);transition:box-shadow 0.3s;}
+    .nav.scrolled{box-shadow:0 2px 16px rgba(0,0,0,0.08);}
+    .nav-left{display:flex;align-items:center;gap:4rem;}
+    .nav-logo{display:flex;align-items:center;gap:0.6rem;text-decoration:none;}
+    .nav-logo-text{font-family:var(--font-brand);font-weight:700;font-size:1.22rem;color:var(--navy);letter-spacing:-0.03em;line-height:1;}
+    .nav-links{display:flex;align-items:center;gap:1.75rem;}
+    .nav-link{font-size:0.875rem;font-weight:500;color:var(--gray-600);text-decoration:none;transition:color 0.2s;}
+    .nav-link:hover{color:var(--navy);}
+    .btn-navy{display:inline-flex;align-items:center;gap:0.4rem;background:var(--navy);color:white;padding:0.6rem 1.3rem;border-radius:9999px;font-size:0.82rem;font-weight:600;font-family:var(--font-body);border:none;cursor:pointer;text-decoration:none;transition:transform 0.2s,box-shadow 0.2s,background 0.2s;box-shadow:0 4px 20px rgba(13,31,78,0.35);}
+    .btn-navy:hover{background:var(--navy-mid);transform:translateY(-1px);}
+
+    /* ARTICLE HERO */
+    .article-hero{padding:9rem 2rem 5rem;background:var(--white);border-bottom:1px solid var(--gray-100);}
+    .article-hero-inner{max-width:760px;margin:0 auto;}
+    .article-tag{display:inline-flex;align-items:center;background:var(--gray-100);color:var(--navy);padding:0.28rem 0.9rem;border-radius:9999px;font-size:0.72rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:1.5rem;}
+    .article-title{font-family:var(--font-display);font-size:clamp(2rem,4vw,3.2rem);line-height:1.1;letter-spacing:-0.03em;color:var(--black);margin:0 0 1.25rem;}
+    .article-title em{font-style:italic;color:var(--navy);}
+    .article-meta{display:flex;align-items:center;gap:1.5rem;color:var(--gray-400);font-size:0.82rem;}
+    .article-meta span{display:flex;align-items:center;gap:0.4rem;}
+    .article-intro{font-size:1.05rem;line-height:1.85;color:var(--gray-600);margin-top:1.75rem;padding-top:1.75rem;border-top:1px solid var(--gray-100);}
+
+    /* ARTICLE BODY */
+    .article-body{max-width:760px;margin:0 auto;padding:4rem 2rem 6rem;}
+    .article-body h2{font-family:var(--font-display);font-size:clamp(1.5rem,2.5vw,2rem);line-height:1.15;letter-spacing:-0.025em;color:var(--black);margin:3rem 0 1rem;}
+    .article-body h2 em{font-style:italic;color:var(--navy);}
+    .article-body h3{font-family:var(--font-brand);font-size:1.05rem;font-weight:600;color:var(--black);margin:2rem 0 0.75rem;letter-spacing:-0.01em;}
+    .article-body p{font-size:0.975rem;line-height:1.9;color:var(--gray-600);margin:0 0 1.25rem;}
+    .article-body strong{color:var(--black);font-weight:600;}
+    .article-body a{color:var(--navy);text-decoration:underline;text-underline-offset:3px;}
+
+    /* PULL QUOTE */
+    .pull-quote{background:var(--navy);border-radius:1.25rem;padding:2.5rem 2.25rem;margin:2.5rem 0;color:white;}
+    .pull-quote p{font-family:var(--font-display);font-size:clamp(1.2rem,1.5vw,1.5rem);font-style:italic;line-height:1.6;color:white;margin:0 0 0.75rem;}
+    .pull-quote cite{font-size:0.78rem;color:rgba(255,255,255,0.45);font-style:normal;letter-spacing:0.06em;text-transform:uppercase;}
+
+    /* STAT CARDS */
+    .stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin:2.5rem 0;}
+    .stat-card{background:var(--gray-50);border:1px solid var(--gray-100);border-radius:1.25rem;padding:1.75rem 1.5rem;text-align:center;}
+    .stat-card.highlight{background:var(--navy);border-color:var(--navy);}
+    .stat-number{font-family:var(--font-display);font-size:2.75rem;font-style:italic;color:var(--navy);line-height:1;margin-bottom:0.5rem;}
+    .stat-card.highlight .stat-number{color:white;}
+    .stat-label{font-size:0.78rem;font-weight:600;color:var(--gray-600);line-height:1.5;letter-spacing:0.01em;}
+    .stat-card.highlight .stat-label{color:rgba(255,255,255,0.65);}
+    .stat-source{font-size:0.68rem;color:var(--gray-400);margin-top:0.5rem;}
+    .stat-card.highlight .stat-source{color:rgba(255,255,255,0.35);}
+
+    /* BAR CHART */
+    .chart-block{background:var(--gray-50);border:1px solid var(--gray-100);border-radius:1.25rem;padding:2rem 2rem 1.5rem;margin:2.5rem 0;}
+    .chart-title{font-family:var(--font-brand);font-size:0.9rem;font-weight:700;color:var(--black);margin-bottom:0.25rem;}
+    .chart-subtitle{font-size:0.75rem;color:var(--gray-400);margin-bottom:1.75rem;}
+    .chart-row{display:flex;align-items:center;gap:1rem;margin-bottom:1rem;}
+    .chart-label{font-size:0.78rem;font-weight:600;color:var(--gray-600);width:140px;flex-shrink:0;text-align:right;}
+    .chart-bar-wrap{flex:1;background:var(--gray-200);border-radius:9999px;height:28px;position:relative;overflow:hidden;}
+    .chart-bar{height:100%;border-radius:9999px;display:flex;align-items:center;padding-left:0.75rem;font-size:0.75rem;font-weight:700;color:white;transition:width 1s ease;}
+    .chart-bar.c1{background:var(--navy);}
+    .chart-bar.c2{background:#3a5298;}
+    .chart-bar.c3{background:#6b7fa8;}
+    .chart-bar.c4{background:#b0bdd4;}
+    .chart-bar.c4 span{color:var(--gray-600);}
+    .chart-legend{font-size:0.7rem;color:var(--gray-400);margin-top:0.75rem;}
+
+    /* DECAY TIMELINE */
+    .timeline{margin:2.5rem 0;position:relative;}
+    .timeline-track{display:flex;align-items:flex-end;gap:0;height:180px;border-bottom:2px solid var(--gray-200);position:relative;}
+    .timeline-bar-group{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:0.3rem;padding:0 4px;}
+    .timeline-bar{width:100%;border-radius:6px 6px 0 0;transition:height 0.8s;}
+    .timeline-bar-label{font-size:0.68rem;font-weight:700;color:var(--gray-600);text-align:center;margin-top:0.4rem;}
+    .timeline-bar-value{font-size:0.7rem;font-weight:600;color:var(--gray-400);text-align:center;}
+    .timeline-x-label{font-size:0.72rem;color:var(--gray-400);text-align:center;margin-top:0.75rem;}
+
+    /* DATA TABLE */
+    .data-table{width:100%;border-collapse:collapse;margin:2rem 0;font-size:0.875rem;}
+    .data-table th{background:var(--navy);color:white;padding:0.9rem 1.1rem;text-align:left;font-size:0.75rem;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;}
+    .data-table th:first-child{border-radius:0.75rem 0 0 0;}
+    .data-table th:last-child{border-radius:0 0.75rem 0 0;}
+    .data-table td{padding:0.85rem 1.1rem;border-bottom:1px solid var(--gray-100);color:var(--gray-600);}
+    .data-table tr:last-child td{border-bottom:none;}
+    .data-table tr:hover td{background:var(--gray-50);}
+    .data-table .good{color:#16a34a;font-weight:700;}
+    .data-table .bad{color:#dc2626;font-weight:700;}
+    .data-table .mid{color:#d97706;font-weight:700;}
+
+    /* CALLOUT BOX */
+    .callout{border-left:4px solid var(--navy);background:var(--gray-50);border-radius:0 1rem 1rem 0;padding:1.5rem 1.75rem;margin:2rem 0;}
+    .callout p{margin:0;font-size:0.9rem;line-height:1.75;color:var(--gray-600);}
+    .callout strong{color:var(--navy);}
+
+    /* CTA BLOCK */
+    .article-cta{background:var(--navy);border-radius:1.5rem;padding:3rem 2.5rem;margin:3.5rem 0;text-align:center;position:relative;overflow:hidden;}
+    .article-cta::before{content:'';position:absolute;top:-40%;right:-10%;width:400px;height:400px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,0.04) 0%,transparent 65%);pointer-events:none;}
+    .article-cta h3{font-family:var(--font-display);font-size:clamp(1.5rem,2.5vw,2rem);color:white;margin:0 0 0.75rem;letter-spacing:-0.02em;}
+    .article-cta h3 em{font-style:italic;background:linear-gradient(135deg,#e8d9b8,#c9a96e);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+    .article-cta p{font-size:0.9rem;color:rgba(255,255,255,0.5);margin:0 0 2rem;line-height:1.75;}
+    .btn-white{display:inline-flex;align-items:center;gap:0.4rem;background:white;color:var(--navy);padding:0.8rem 1.8rem;border-radius:9999px;font-size:0.875rem;font-weight:700;font-family:var(--font-body);border:none;cursor:pointer;text-decoration:none;transition:transform 0.2s,box-shadow 0.2s;}
+    .btn-white:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(255,255,255,0.2);}
+
+    /* SOURCES */
+    .sources{background:var(--gray-50);border-radius:1rem;padding:1.5rem 1.75rem;margin-top:3rem;}
+    .sources h4{font-size:0.75rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--gray-400);margin:0 0 0.75rem;}
+    .sources ul{margin:0;padding-left:1.25rem;}
+    .sources li{font-size:0.78rem;color:var(--gray-400);margin-bottom:0.35rem;line-height:1.5;}
+    .sources a{color:var(--gray-600);}
+
+    /* BACK LINK */
+    .back-link{display:inline-flex;align-items:center;gap:0.4rem;font-size:0.82rem;color:var(--gray-400);text-decoration:none;transition:color 0.2s;margin-bottom:1.5rem;}
+    .back-link:hover{color:var(--navy);}
+
+    @media(max-width:900px){
+      .stat-grid{grid-template-columns:repeat(2,1fr);}
+      .nav-links{display:none;}
+      .chart-label{width:90px;font-size:0.7rem;}
+    }
+    @media(max-width:560px){
+      .stat-grid{grid-template-columns:1fr;}
+      .article-hero,.article-body{padding-left:1.25rem;padding-right:1.25rem;}
+    }
+  </style>
+</head>
+<body>
+
+<nav class="nav" id="navbar">
+  <div class="nav-left">
+    <a href="index.html" class="nav-logo">
+      <img src="logo.png" alt="LoopCan" style="display:block;flex-shrink:0;height:28px;width:28px;object-fit:contain;filter:sepia(1) saturate(5) hue-rotate(200deg) brightness(0.32);"/>
+      <span class="nav-logo-text">LoopCan</span>
+    </a>
+    <div class="nav-links">
+      <a href="index.html#nasil-calisiyoruz" class="nav-link">Süreç</a>
+      <a href="index.html#neden-biz" class="nav-link">Hakkımızda</a>
+      <a href="index.html#iletisim" class="nav-link">İletişim</a>
+      <a href="#" class="nav-link" style="color:var(--navy);font-weight:600;">Blog</a>
+    </div>
+  </div>
+  <a href="index.html#iletisim" class="btn-navy">Ekibinizi Güçlendirin →</a>
+</nav>
+
+<!-- ARTICLE HERO -->
+<header class="article-hero">
+  <div class="article-hero-inner">
+    <a href="index.html" class="back-link">← Ana sayfaya dön</a>
+    <span class="article-tag">Satış &amp; Otomasyon</span>
+    <h1 class="article-title">Dünyanın En Çok Görmezden Gelinen<br>Satış Gerçeği: <em>Hız Her Şeydir</em></h1>
+    <div class="article-meta">
+      <span>LoopCan Ekibi</span>
+      <span>·</span>
+      <span>8 dakika okuma</span>
+    </div>
+    <p class="article-intro">
+      Bir müşteri adayı — satış dünyasında <em>lead</em> olarak geçen bu kavram — size ulaştığı anda saatler değil, <strong>dakikalar</strong> önem taşır. Harvard Business Review ve MIT'nin yüz binlerce veriyle yaptığı araştırmalar aynı sonuca işaret ediyor: Çoğu şirket bu pencereyi farkında bile olmadan kapatıyor. Bu yazıda nedenini ve nasıl değiştirebileceğinizi anlatıyoruz.
+    </p>
+  </div>
+</header>
+
+<!-- ARTICLE BODY -->
+<article class="article-body">
+
+  <h2>Sıcak Temas ve Soğuk Temas Nedir?</h2>
+
+  <p>Satışta iki tip müşteri adayından söz ederiz. <strong>Soğuk temas</strong>, henüz sizinle herhangi bir etkileşime girmemiş kişidir — bir reklamı gördü, adınızı duydu, belki web sitenize bir göz attı ama bir adım atmadı. <strong>Sıcak temas</strong> ise fiyat soran, form dolduran, WhatsApp'tan mesaj atan, demo isteyen kişidir. Yani <em>size kendi iradesiyle gelen kişi.</em></p>
+
+  <p>Bu ikisi arasındaki fark kritiktir. Soğuk temasa ulaşmak için siz onun kapısını çalarsınız — zamanı, dikkati ve sabrı sizin yönetmeniz gerekir. Sıcak temas ise kapıyı kendisi çalmıştır. Satın almaya hazırdır, sadece birine ihtiyacı var: <strong>hemen cevap verecek birine.</strong></p>
+
+  <div class="pull-quote">
+    <p>"Form dolduran, mesaj atan, fiyat soran müşteri adayının ilgisi bir buz kütlesi gibidir — etrafındaki ısı ne kadar yüksekse o kadar hızlı erir."</p>
+    <cite>LoopCan — Satış Otomasyon Ekibi</cite>
+  </div>
+
+  <h2>Araştırmalar Ne Söylüyor?</h2>
+
+  <h3>Harvard Business Review: 1,25 Milyon Lead'in Analizi</h3>
+
+  <p>Harvard Business Review, James B. Oldroyd liderliğinde ABD'deki 42 farklı şirketten toplanan <strong>1,25 milyon satış müşteri adayını</strong> analiz etti. Sonuçlar çarpıcıydı: Bir müşteri adayına <strong>ilk 1 saat içinde</strong> geri dönen şirketler, daha geç dönenlerden <strong>7 kat daha fazla</strong> nitelikli görüşme yapıyordu. 24 saat bekleyenler ise bu avantajı <strong>60 kata</strong> kadar yitirdi.</p>
+
+  <div class="stat-grid">
+    <div class="stat-card highlight">
+      <div class="stat-number">7×</div>
+      <div class="stat-label">İlk 1 saatte dönen şirketler, geç dönenlerden bu kadar daha fazla müşteri kazanıyor</div>
+      <div class="stat-source">Harvard Business Review, 2011</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number">60×</div>
+      <div class="stat-label">1 saatte dönenler vs. 24 saat bekleyenler arasındaki başarı farkı</div>
+      <div class="stat-source">Harvard Business Review, 2011</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number">42 sa.</div>
+      <div class="stat-label">Şirketlerin bir müşteri adayına geri dönüş için beklediği ortalama süre</div>
+      <div class="stat-source">HBR / InsideSales.com</div>
+    </div>
+  </div>
+
+  <p>Peki şirketler gerçekte nasıl davranıyor? HBR aynı çalışmada <strong>2.241 Amerikan şirketini</strong> denetledi ve tablo oldukça ürkütücüydü:</p>
+
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Geri Dönüş Süresi</th>
+        <th>Şirket Oranı</th>
+        <th>Değerlendirme</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>İlk 1 saat içinde</td>
+        <td>%37</td>
+        <td class="good">İyi — ama yeterli değil</td>
+      </tr>
+      <tr>
+        <td>1–24 saat arası</td>
+        <td>%16</td>
+        <td class="mid">Geç — büyük ihtimalle kaçırdı</td>
+      </tr>
+      <tr>
+        <td>24 saatten fazla</td>
+        <td>%24</td>
+        <td class="bad">Kritik kayıp</td>
+      </tr>
+      <tr>
+        <td><strong>Hiç geri dönmedi</strong></td>
+        <td><strong>%23</strong></td>
+        <td class="bad">Kesin kayıp</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>Yani yaklaşık her 4 şirketten biri, kapısına gelen müşteri adayına hiç geri dönmüyor. Kapıyı çalan gidiyor.</p>
+
+  <h3>MIT &amp; InsideSales.com: 5 Dakikanın Mucizesi</h3>
+
+  <p>Massachusetts Institute of Technology (MIT) ve InsideSales.com'un 3 yıl boyunca 100.000'den fazla arama girişimini incelediği ortak çalışma, HBR'ın bulgularını çok daha keskin bir mercekle gösterdi. Kritik eşik artık <em>saatler</em> değil, <em>dakikaydı.</em></p>
+
+  <div class="chart-block">
+    <div class="chart-title">5 Dakika İçinde Yanıt Vermenin Etkisi</div>
+    <div class="chart-subtitle">30 dakika beklemekle kıyaslandığında — MIT / InsideSales.com Araştırması</div>
+
+    <div class="chart-row">
+      <div class="chart-label">Nitelikli görüşme</div>
+      <div class="chart-bar-wrap">
+        <div class="chart-bar c1" style="width:100%"><span>21× daha fazla</span></div>
+      </div>
+    </div>
+    <div class="chart-row">
+      <div class="chart-label">İlk temasa geçme</div>
+      <div class="chart-bar-wrap">
+        <div class="chart-bar c1" style="width:100%"><span>100× daha fazla</span></div>
+      </div>
+    </div>
+    <div class="chart-row">
+      <div class="chart-label">5–10 dk. arası yanıt</div>
+      <div class="chart-bar-wrap">
+        <div class="chart-bar c3" style="width:25%"><span>4× düşüş</span></div>
+      </div>
+    </div>
+    <div class="chart-row">
+      <div class="chart-label">20 saat sonra yanıt</div>
+      <div class="chart-bar-wrap">
+        <div class="chart-bar c4" style="width:5%"><span class="" style="color:var(--gray-600);padding-left:0.5rem;">Neredeyse sıfır etki</span></div>
+      </div>
+    </div>
+    <div class="chart-legend">Kaynak: MIT &amp; InsideSales.com, Lead Response Management Study</div>
+  </div>
+
+  <p>Rakamları bir düşünün: <strong>5 dakika ile 30 dakika</strong> arasındaki fark — sadece <em>25 dakika</em> — sizi müşteri adayını nitelendirme ihtimalinde <strong>21 kat</strong>, onunla ilk temasa geçme ihtimalinde ise <strong>100 kat</strong> daha avantajlı yapıyor.</p>
+
+  <div class="callout">
+    <p><strong>Bunu somutlaştıralım:</strong> Saat 14.30'da biri web sitenizden fiyat teklifi istedi. Siz mesajı saat 15.00'te gördünüz — çünkü toplantıdaydınız, çünkü bildirimi kaçırdınız, çünkü insan oldunuz. Bu 30 dakikada o kişi büyük ihtimalle rakibinizden teklif almış, belki konuşmayı bile bitirmiştir.</p>
+  </div>
+
+  <h2>Sıcak Temasın <em>"Soğuma"</em> Eğrisi</h2>
+
+  <p>MIT verilerinden çıkardığımız tabloya bakıldığında, sıcak temasın ilgisinin zaman içinde nasıl düştüğü net biçimde görülüyor. Önemli olan: Bu eğri lineer değil, <strong>üstel bir çöküş.</strong> İlk 5 dakika geçtikten sonra her geçen dakika bir öncekinden daha fazlasını götürüyor.</p>
+
+  <!-- Decay Visual -->
+  <div class="chart-block">
+    <div class="chart-title">Müşteri Adayı İlgisinin Zaman İçindeki Değişimi</div>
+    <div class="chart-subtitle">Yanıt süresi uzadıkça dönüşüm olasılığı nasıl değişiyor?</div>
+    <div style="display:flex;align-items:flex-end;gap:8px;height:150px;margin-top:1rem;padding-bottom:0.5rem;border-bottom:2px solid var(--gray-200);">
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;">
+        <div style="width:100%;background:var(--navy);border-radius:6px 6px 0 0;height:140px;"></div>
+        <div style="font-size:0.65rem;color:var(--gray-600);font-weight:700;margin-top:6px;text-align:center;">≤5 dk</div>
+        <div style="font-size:0.65rem;color:var(--gray-400);text-align:center;">%100</div>
+      </div>
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;">
+        <div style="width:100%;background:#3a5298;border-radius:6px 6px 0 0;height:60px;"></div>
+        <div style="font-size:0.65rem;color:var(--gray-600);font-weight:700;margin-top:6px;text-align:center;">10 dk</div>
+        <div style="font-size:0.65rem;color:var(--gray-400);text-align:center;">%43</div>
+      </div>
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;">
+        <div style="width:100%;background:#6b7fa8;border-radius:6px 6px 0 0;height:28px;"></div>
+        <div style="font-size:0.65rem;color:var(--gray-600);font-weight:700;margin-top:6px;text-align:center;">30 dk</div>
+        <div style="font-size:0.65rem;color:var(--gray-400);text-align:center;">%20</div>
+      </div>
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;">
+        <div style="width:100%;background:#9aacc8;border-radius:6px 6px 0 0;height:14px;"></div>
+        <div style="font-size:0.65rem;color:var(--gray-600);font-weight:700;margin-top:6px;text-align:center;">1 saat</div>
+        <div style="font-size:0.65rem;color:var(--gray-400);text-align:center;">%10</div>
+      </div>
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;">
+        <div style="width:100%;background:#c5d0e0;border-radius:6px 6px 0 0;height:6px;"></div>
+        <div style="font-size:0.65rem;color:var(--gray-600);font-weight:700;margin-top:6px;text-align:center;">24 saat</div>
+        <div style="font-size:0.65rem;color:var(--gray-400);text-align:center;">%4</div>
+      </div>
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;">
+        <div style="width:100%;background:#e5e9f0;border-radius:6px 6px 0 0;height:3px;"></div>
+        <div style="font-size:0.65rem;color:var(--gray-600);font-weight:700;margin-top:6px;text-align:center;">48 saat+</div>
+        <div style="font-size:0.65rem;color:var(--gray-400);text-align:center;">%2</div>
+      </div>
+    </div>
+    <div style="font-size:0.7rem;color:var(--gray-400);margin-top:0.75rem;">Kaynak: MIT &amp; InsideSales.com araştırmasından türetilmiş temsili değerler</div>
+  </div>
+
+  <h2>Peki Çözüm Ne?</h2>
+
+  <p>Sorun insan değil, <strong>sistem.</strong> En iyi satış ekibi bile toplantıdayken, öğle yemeğindeyken, hafta sonunda gelen bir mesajı anlık karşılayamaz. Ama bir <strong>otomasyon sistemi</strong> karşılayabilir.</p>
+
+  <p>Biri size WhatsApp'tan mesaj attığında, web sitenizden form doldurduğunda veya reklamınıza tıkladığında ne olur? Eğer yanıt otomatik değilse, o kişi 5 dakika içinde rakibinizle konuşuyor olabilir.</p>
+
+  <p>Doğru kurgulanmış bir otomasyon sistemi şunları yapabilir:</p>
+
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Senaryo</th>
+        <th>Manuel Süreç</th>
+        <th>Otomasyon ile</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Form dolduruldu</td>
+        <td class="bad">Ekip saat 09:00'da görür</td>
+        <td class="good">Anında kişiselleştirilmiş yanıt</td>
+      </tr>
+      <tr>
+        <td>WhatsApp mesajı</td>
+        <td class="bad">Mesai saatinde fark edilir</td>
+        <td class="good">7/24 otomatik karşılama + yönlendirme</td>
+      </tr>
+      <tr>
+        <td>Fiyat talebi</td>
+        <td class="mid">1–2 iş günü</td>
+        <td class="good">Dakikalar içinde ön bilgi + randevu linki</td>
+      </tr>
+      <tr>
+        <td>Demo talebi</td>
+        <td class="bad">E-posta silsilesi, takip kaybı</td>
+        <td class="good">Otomatik takvim entegrasyonu</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>Buradaki kritik nokta şu: Otomasyon, satış ekibinin yerine geçmiyor. <strong>Satış ekibine müşteri adayını sıcak tutarak teslim ediyor.</strong> Ekibiniz toplantıdan çıktığında o kişi zaten bilgilendirilmiş, takvimde bir yer ayırtmış ve sizi bekliyor hâlde olabilir.</p>
+
+  <div class="pull-quote">
+    <p>"Sıcak temaslar satın almaya karar vermiş değil, satın almayı düşünüyor. Bu pencereyi açık tutan şey hız; kapatan şey ise bekleme süresidir."</p>
+    <cite>MIT Lead Response Management Study — Dr. James Oldroyd</cite>
+  </div>
+
+  <h2>Son Söz</h2>
+
+  <p>Araştırmalar on yıl önce yapıldı ama gerçeklik bugün daha da keskin: Dikkat daha kısa, alternatifler daha fazla, rekabet daha yoğun. <strong>%78 oranında müşteri, ilk ulaşan şirketle çalışmaya başlıyor.</strong></p>
+
+  <p>Eğer sisteminiz bir sıcak teması 30 dakika sonra karşılıyorsa, aslında soğuk temasa dönüşmüş biriyle konuşuyorsunuzdur. Ve soğuk temasa ikna etmek, çok daha fazla enerji — ve çok daha fazla para — ister.</p>
+
+  <p>Hız bir lüks değil, bugünün pazarında temel bir <strong>rekabet silahı.</strong></p>
+
+  <!-- CTA -->
+  <div class="article-cta">
+    <h3>Ekibiniz sıcak temasları kaçırıyor olabilir mi?</h3>
+    <p>30 dakikalık ücretsiz analiz görüşmesinde mevcut süreçlerinizi birlikte inceleyelim. Nerede kaybettiğinizi ve otomasyonun nasıl fark yaratabileceğini gösterelim.</p>
+    <a href="index.html#iletisim" class="btn-white">Ücretsiz Analiz Al →</a>
+  </div>
+
+  <!-- Sources -->
+  <div class="sources">
+    <h4>Kaynaklar</h4>
+    <ul>
+      <li>Oldroyd, J.B. (2011). <em>The Short Life of Online Sales Leads.</em> Harvard Business Review. <a href="https://hbr.org/2011/03/the-short-life-of-online-sales-leads" target="_blank">hbr.org</a></li>
+      <li>Oldroyd, J.B. &amp; InsideSales.com (2007–2010). <em>Lead Response Management Study.</em> MIT Sloan School of Management. <a href="https://www.leadresponsemanagement.org/lrm_study/" target="_blank">leadresponsemanagement.org</a></li>
+      <li>InsideSales.com (2017). <em>Response Time Matters.</em> Average B2B response time: 47 hours.</li>
+    </ul>
+  </div>
+
+</article>
+
+<script>
+  const nav = document.getElementById('navbar');
+  window.addEventListener('scroll',()=>{nav.classList.toggle('scrolled',window.scrollY>50);},{passive:true});
+</script>
+</body>
+</html>

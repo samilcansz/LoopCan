@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hero Önizleme — LoopCan</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --navy: #0d1f4e;
+    --gold: #c9a84c;
+    --font-display: 'Georgia', 'Times New Roman', serif;
+    --font-body: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  }
+
+  body {
+    font-family: var(--font-body);
+    background: var(--navy);
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  /* ─── HERO WRAPPER ─── */
+  .hero {
+    width: 100%;
+    height: 100vh;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+    gap: 5rem;
+    padding: 0 max(6vw, 48px);
+    background: radial-gradient(ellipse at 28% 55%, #1b2f72 0%, #0d1f4e 45%, #060f28 100%);
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* subtle dot grid */
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(circle, rgba(255,255,255,0.06) 1px, transparent 1px);
+    background-size: 36px 36px;
+    pointer-events: none;
+  }
+
+  /* ambient glow */
+  .hero::after {
+    content: '';
+    position: absolute;
+    top: -20%; left: -10%;
+    width: 60%; height: 80%;
+    background: radial-gradient(ellipse, rgba(99,120,220,0.12) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  /* ─── LEFT: TEXT ─── */
+  .hero-text {
+    position: relative;
+    z-index: 2;
+    max-width: 520px;
+  }
+
+  .hero-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 9999px;
+    padding: 7px 16px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.09em;
+    color: rgba(255,255,255,0.55);
+    text-transform: uppercase;
+    margin-bottom: 2rem;
+  }
+
+  .eyebrow-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: #4ade80;
+    box-shadow: 0 0 6px rgba(74,222,128,0.6);
+    animation: edp 2s ease-in-out infinite;
+  }
+  @keyframes edp { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+  .hero-h1 {
+    font-family: var(--font-display);
+    font-size: clamp(2.6rem, 4vw, 3.8rem);
+    font-weight: 400;
+    color: #fff;
+    line-height: 1.1;
+    letter-spacing: -0.025em;
+    margin-bottom: 1.25rem;
+  }
+
+  .hero-h1 em {
+    font-style: italic;
+    color: var(--gold);
+  }
+
+  .hero-sub {
+    font-size: 0.98rem;
+    color: rgba(255,255,255,0.5);
+    line-height: 1.75;
+    max-width: 400px;
+    margin-bottom: 2.25rem;
+  }
+
+  .hero-btns { display: flex; gap: 12px; }
+
+  .btn-primary {
+    background: white; color: var(--navy);
+    padding: 13px 28px; border-radius: 9999px;
+    font-weight: 700; font-size: 0.88rem;
+    text-decoration: none; cursor: pointer;
+    border: none;
+  }
+
+  .btn-ghost {
+    background: transparent; color: rgba(255,255,255,0.65);
+    padding: 13px 28px; border-radius: 9999px;
+    font-weight: 500; font-size: 0.88rem;
+    text-decoration: none; cursor: pointer;
+    border: 1.5px solid rgba(255,255,255,0.18);
+  }
+
+  /* ─── RIGHT: EVENT FEED ─── */
+  .hero-feed-wrap {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  /* header row */
+  .hf-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+
+  .hf-live {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.38);
+  }
+
+  .hf-pulse {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #4ade80;
+    position: relative;
+  }
+  .hf-pulse::after {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(74,222,128,0.5);
+    animation: ring 1.8s ease-out infinite;
+  }
+  @keyframes ring {
+    0% { transform: scale(.5); opacity: 1; }
+    100% { transform: scale(2.2); opacity: 0; }
+  }
+
+  .hf-count {
+    font-size: 0.7rem;
+    color: rgba(255,255,255,0.25);
+    font-weight: 500;
+  }
+  .hf-count strong {
+    color: rgba(255,255,255,0.55);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* card container */
+  .hf-feed {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+  }
+
+  /* progress bar below feed */
+  .hf-progress-bar {
+    height: 2px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 9999px;
+    margin-top: 18px;
+    overflow: hidden;
+  }
+  .hf-progress-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, rgba(255,255,255,0.15), rgba(255,255,255,0.35));
+    border-radius: 9999px;
+    transition: width linear;
+  }
+
+  /* ─── EVENT CARD ─── */
+  .ev-card {
+    background: rgba(255,255,255,0.055);
+    border: 1px solid rgba(255,255,255,0.09);
+    border-radius: 14px;
+    padding: 13px 15px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: relative;
+    overflow: hidden;
+    animation: evIn 0.48s cubic-bezier(0.22, 1.4, 0.56, 1) forwards;
+  }
+
+  /* shimmer on entry */
+  .ev-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.05) 50%, transparent 70%);
+    animation: shimmer 0.9s ease forwards;
+  }
+  @keyframes shimmer {
+    0%   { transform: translateX(-120%); }
+    100% { transform: translateX(120%); }
+  }
+
+  .ev-card.ev-out {
+    animation: none;
+    transition: opacity 0.3s ease, transform 0.3s ease, max-height 0.35s ease, padding 0.35s ease, margin 0.35s ease;
+    opacity: 0;
+    transform: translateY(-8px) scale(0.97);
+    max-height: 0 !important;
+    padding-top: 0;
+    padding-bottom: 0;
+    margin-bottom: -9px;
+    overflow: hidden;
+  }
+
+  @keyframes evIn {
+    from { opacity: 0; transform: translateY(20px) scale(0.96); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  .ev-icon {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .ev-icon svg {
+    width: 15px; height: 15px;
+    fill: none; stroke-width: 2;
+    stroke-linecap: round; stroke-linejoin: round;
+  }
+
+  .ev-body { flex: 1; min-width: 0; }
+
+  .ev-source {
+    font-size: 0.68rem;
+    color: rgba(255,255,255,0.38);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 2px;
+    font-weight: 500;
+  }
+
+  .ev-action {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: rgba(255,255,255,0.88);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .ev-arrow {
+    color: var(--gold);
+    font-size: 0.75rem;
+    flex-shrink: 0;
+  }
+
+  .ev-check {
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    background: rgba(74,222,128,0.12);
+    border: 1px solid rgba(74,222,128,0.25);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .ev-check svg {
+    width: 11px; height: 11px;
+    stroke: #4ade80;
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    fill: none;
+  }
+
+  /* ─── PREVIEW BADGE ─── */
+  .preview-badge {
+    position: fixed;
+    bottom: 22px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.14);
+    backdrop-filter: blur(10px);
+    border-radius: 9999px;
+    padding: 9px 22px;
+    font-size: 0.75rem;
+    color: rgba(255,255,255,0.45);
+    z-index: 100;
+    white-space: nowrap;
+    letter-spacing: 0.03em;
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <!-- LEFT -->
+  <div class="hero-text">
+    <div class="hero-eyebrow">
+      <span class="eyebrow-dot"></span>
+      Otomasyon &amp; Entegrasyon
+    </div>
+    <h1 class="hero-h1">Ekibinizin Gücünü<br><em>Katlayın</em></h1>
+    <p class="hero-sub">Satış ve operasyon süreçlerinizi otomatikleştirin. Yeni çalışan almadan, mevcut ekibinizle çok daha fazlasını başarın.</p>
+    <div class="hero-btns">
+      <a class="btn-primary">Tanışalım →</a>
+      <a class="btn-ghost">Nasıl Çalışıyoruz?</a>
+    </div>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="hero-feed-wrap">
+    <div class="hf-header">
+      <div class="hf-live">
+        <span class="hf-pulse"></span>
+        Canlı otomasyon akışı
+      </div>
+      <div class="hf-count"><strong id="hfCount">47</strong> bugün çalıştı</div>
+    </div>
+    <div class="hf-feed" id="hfFeed"></div>
+    <div class="hf-progress-bar">
+      <div class="hf-progress-fill" id="hfProgress"></div>
+    </div>
+  </div>
+</div>
+
+<div class="preview-badge">Önizleme — Hero sağ panel bileşeni</div>
+
+<script>
+const EVENTS = [
+  {
+    color: '#25D366', bg: 'rgba(37,211,102,0.13)',
+    source: 'WhatsApp mesajı alındı',
+    action: 'Otomatik yanıt gönderildi',
+    icon: `<svg viewBox="0 0 24 24" style="stroke:#25D366"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>`
+  },
+  {
+    color: '#3b82f6', bg: 'rgba(59,130,246,0.13)',
+    source: 'İletişim formu dolduruldu',
+    action: "CRM kaydı oluşturuldu",
+    icon: `<svg viewBox="0 0 24 24" style="stroke:#3b82f6"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/></svg>`
+  },
+  {
+    color: '#f59e0b', bg: 'rgba(245,158,11,0.13)',
+    source: 'Fiyat talebi e-postası alındı',
+    action: 'Teklif hazırlandı & iletildi',
+    icon: `<svg viewBox="0 0 24 24" style="stroke:#f59e0b"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>`
+  },
+  {
+    color: '#8b5cf6', bg: 'rgba(139,92,246,0.13)',
+    source: 'Toplantı talebi alındı',
+    action: 'Takvim linki otomatik gönderildi',
+    icon: `<svg viewBox="0 0 24 24" style="stroke:#8b5cf6"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>`
+  },
+  {
+    color: '#34a853', bg: 'rgba(52,168,83,0.13)',
+    source: 'Pazartesi 08:00 tetiklendi',
+    action: 'Haftalık rapor ekibe iletildi',
+    icon: `<svg viewBox="0 0 24 24" style="stroke:#34a853"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>`
+  },
+  {
+    color: '#e1306c', bg: 'rgba(225,48,108,0.13)',
+    source: 'Instagram DM alındı',
+    action: "CRM'e aktarıldı & etiketlendi",
+    icon: `<svg viewBox="0 0 24 24" style="stroke:#e1306c"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1.2" fill="#e1306c" stroke="none"/></svg>`
+  },
+  {
+    color: '#06b6d4', bg: 'rgba(6,182,212,0.13)',
+    source: 'Yeni müşteri kaydı oluştu',
+    action: 'Karşılama serisi başlatıldı',
+    icon: `<svg viewBox="0 0 24 24" style="stroke:#06b6d4"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`
+  },
+  {
+    color: '#10b981', bg: 'rgba(16,185,129,0.13)',
+    source: 'Teklif onaylandı',
+    action: 'Sözleşme taslağı oluşturuldu',
+    icon: `<svg viewBox="0 0 24 24" style="stroke:#10b981"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>`
+  },
+  {
+    color: '#f97316', bg: 'rgba(249,115,22,0.13)',
+    source: 'Müşteri şikayeti alındı',
+    action: 'Ekip bildirildi & bilet açıldı',
+    icon: `<svg viewBox="0 0 24 24" style="stroke:#f97316"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`
+  },
+  {
+    color: '#a855f7', bg: 'rgba(168,85,247,0.13)',
+    source: 'LinkedIn mesajı alındı',
+    action: "Potansiyel müşteri CRM'e eklendi",
+    icon: `<svg viewBox="0 0 24 24" style="stroke:#a855f7"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>`
+  },
+];
+
+const INTERVAL   = 2400;  // ms between new cards
+const MAX_CARDS  = 3;
+
+let idx     = 0;
+let count   = 47;
+let progTimer;
+
+const feed     = document.getElementById('hfFeed');
+const countEl  = document.getElementById('hfCount');
+const progEl   = document.getElementById('hfProgress');
+
+function addCard() {
+  const ev = EVENTS[idx % EVENTS.length];
+  idx++;
+
+  // bump counter
+  if (Math.random() > 0.35) { count++; countEl.textContent = count; }
+
+  // build card
+  const card = document.createElement('div');
+  card.className = 'ev-card';
+  card.style.maxHeight = '80px';
+  card.innerHTML = `
+    <div class="ev-icon" style="background:${ev.bg}">${ev.icon}</div>
+    <div class="ev-body">
+      <div class="ev-source">${ev.source}</div>
+      <div class="ev-action"><span class="ev-arrow">→</span>${ev.action}</div>
+    </div>
+    <div class="ev-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+  `;
+  feed.appendChild(card);
+
+  // remove oldest if over limit
+  const cards = Array.from(feed.querySelectorAll('.ev-card:not(.ev-out)'));
+  if (cards.length > MAX_CARDS) {
+    const oldest = cards[0];
+    oldest.classList.add('ev-out');
+    setTimeout(() => oldest.remove(), 380);
+  }
+}
+
+// progress bar animation
+function startProgress() {
+  progEl.style.transition = 'none';
+  progEl.style.width = '0%';
+  requestAnimationFrame(() => {
+    progEl.style.transition = `width ${INTERVAL}ms linear`;
+    progEl.style.width = '100%';
+  });
+}
+
+// init
+addCard();
+setTimeout(addCard, 500);
+setTimeout(() => {
+  addCard();
+  startProgress();
+  setInterval(() => { addCard(); startProgress(); }, INTERVAL);
+}, 1100);
+</script>
+
+</body>
+</html>

@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>LoopCan — Otomasyon Akışı</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --navy:#0d1f4e; --navy-mid:#162b6a; --navy-light:#e8ecf7;
+      --white:#fff; --bg:#f5f6f8;
+      --gray-100:#eaecf0; --gray-200:#d0d5de; --gray-400:#8a96a8; --gray-600:#4a5568;
+      --black:#0a0c10;
+      --green:#22c55e; --green-bg:#dcfce7; --green-text:#15803d;
+      --orange:#f97316; --orange-bg:#ffedd5; --orange-text:#c2410c;
+      --blue:#3b82f6; --blue-bg:#dbeafe; --blue-text:#1d4ed8;
+      --purple:#7c3aed; --purple-bg:#f3e8ff;
+      --teal:#0d9488; --teal-bg:#ccfbf1;
+      --font-display:'Instrument Serif',serif;
+      --font-body:'Inter',sans-serif;
+      --font-brand:'Space Grotesk',sans-serif;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html{-webkit-font-smoothing:antialiased;}
+    body{font-family:var(--font-body);background:var(--white);color:var(--black);padding:4rem 1.5rem 5rem;}
+
+    /* HEADING */
+    .section-tag{display:inline-flex;align-items:center;background:var(--gray-100);color:var(--navy);padding:.28rem .9rem;border-radius:9999px;font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:1rem;}
+    .section-h{font-family:var(--font-display);font-size:clamp(1.85rem,2rem + 1.2vw,3.1rem);color:var(--black);line-height:1.12;letter-spacing:-.025em;margin:0 0 .75rem;}
+    .section-h em{font-style:italic;color:var(--navy-mid);}
+    .section-sub{font-size:1rem;color:var(--gray-600);line-height:1.78;max-width:500px;}
+
+    /* STATUS BAR */
+    .status-bar{display:flex;align-items:center;justify-content:center;gap:1.5rem;margin:2rem 0 0;flex-wrap:wrap;}
+    .status-item{display:flex;align-items:center;gap:.45rem;font-size:.75rem;font-weight:600;color:var(--gray-400);}
+    .status-dot{width:8px;height:8px;border-radius:50%;}
+    .status-item.active-step .status-dot{animation:dotpulse 1s infinite;}
+    @keyframes dotpulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.4);opacity:.7}}
+    .status-item.active-step{color:var(--navy);}
+    .status-item.done-step{color:var(--green-text);}
+    #stepLabel{font-size:.8rem;font-weight:700;color:var(--navy);background:var(--navy-light);padding:.3rem .9rem;border-radius:9999px;margin-left:.5rem;transition:all .3s;}
+
+    /* CANVAS WRAPPER */
+    .canvas-outer{max-width:940px;margin:2.5rem auto 0;position:relative;user-select:none;}
+    .canvas-inner{position:relative;width:100%;height:520px;}
+
+    /* SVG OVERLAY */
+    .conn-svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible;}
+
+    /* CONNECTION PATHS */
+    .conn-bg{fill:none;stroke:var(--gray-200);stroke-width:2;stroke-dasharray:6 4;}
+    .conn-line{fill:none;stroke:var(--navy);stroke-width:2.5;stroke-linecap:round;opacity:0;transition:opacity .2s;}
+    .conn-line.active{opacity:1;}
+
+    /* TRAVEL DOTS */
+    .travel-circle{fill:var(--navy);r:5;opacity:0;}
+
+    /* NODES */
+    .node{
+      position:absolute;
+      width:210px;
+      background:white;
+      border:1.5px solid var(--gray-200);
+      border-radius:14px;
+      padding:12px 14px;
+      display:flex;align-items:center;gap:10px;
+      transition:border-color .3s,box-shadow .3s,transform .25s;
+      cursor:default;
+    }
+    .node:hover{border-color:var(--gray-400);box-shadow:0 4px 16px rgba(0,0,0,.07);transform:translateY(-1px);}
+    .node.state-idle{border-color:var(--gray-200);}
+    .node.state-running{border-color:var(--navy);box-shadow:0 0 0 3px rgba(13,31,78,.1),0 4px 20px rgba(13,31,78,.12);}
+    .node.state-done{border-color:var(--green);box-shadow:0 0 0 3px rgba(34,197,94,.12);}
+    .node.state-done .node-status-dot{background:var(--green);}
+    .node.state-running .node-status-dot{background:var(--navy);animation:dotpulse 1s infinite;}
+    .node-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+    .node-icon svg{width:18px;height:18px;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+    .ni-orange{background:var(--orange-bg);}  .ni-orange svg{stroke:var(--orange);}
+    .ni-blue{background:var(--blue-bg);}      .ni-blue svg{stroke:var(--blue);}
+    .ni-navy{background:var(--navy-light);}   .ni-navy svg{stroke:var(--navy);}
+    .ni-purple{background:var(--purple-bg);}  .ni-purple svg{stroke:var(--purple);}
+    .ni-teal{background:var(--teal-bg);}      .ni-teal svg{stroke:var(--teal);}
+    .ni-green{background:var(--green-bg);}    .ni-green svg{stroke:var(--green-text);}
+    .node-info{flex:1;min-width:0;}
+    .node-title{font-size:.82rem;font-weight:700;color:var(--black);line-height:1.2;}
+    .node-sub{font-size:.68rem;color:var(--gray-400);margin-top:.15rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .node-status-dot{width:7px;height:7px;border-radius:50%;background:var(--gray-200);flex-shrink:0;transition:background .3s;}
+    .node.state-done .node-title{color:var(--green-text);}
+
+    /* STEP LABELS ON PATHS */
+    .path-label{font-size:.62rem;font-weight:600;fill:var(--gray-400);font-family:'Inter',sans-serif;}
+    .path-label.active-label{fill:var(--navy);}
+
+    /* LOOP INDICATOR */
+    .loop-bar{max-width:940px;margin:1.25rem auto 0;display:flex;align-items:center;gap:.75rem;}
+    .loop-track{flex:1;height:3px;background:var(--gray-100);border-radius:99px;overflow:hidden;}
+    .loop-fill{height:100%;background:var(--navy);border-radius:99px;width:0%;transition:width .1s linear;}
+    .loop-label{font-size:.7rem;font-weight:600;color:var(--gray-400);white-space:nowrap;}
+    .loop-count{font-size:.7rem;font-weight:700;color:var(--navy);white-space:nowrap;}
+  </style>
+</head>
+<body>
+
+<div style="text-align:center;margin-bottom:0;">
+  <span class="section-tag">Otomasyon</span>
+  <h2 class="section-h">Bir temas gelir, <em>sistem devreye girer</em></h2>
+  <p class="section-sub" style="margin:0 auto;">Siz müşterinizle ilgilenirken, her adım arka planda otomatik yürüyor.</p>
+
+  <div class="status-bar">
+    <div class="status-item" id="si0"><div class="status-dot" style="background:var(--gray-200)"></div>Hazır</div>
+    <div class="status-item" id="si1"><div class="status-dot" style="background:var(--orange)"></div>Tetiklendi</div>
+    <div class="status-item" id="si2"><div class="status-dot" style="background:var(--blue)"></div>Analiz Edildi</div>
+    <div class="status-item" id="si3"><div class="status-dot" style="background:var(--navy)"></div>İşlemler Çalıştı</div>
+    <div class="status-item" id="si4"><div class="status-dot" style="background:var(--green)"></div>Tamamlandı</div>
+    <span id="stepLabel">Başlatılıyor...</span>
+  </div>
+</div>
+
+<!-- WORKFLOW CANVAS -->
+<div class="canvas-outer">
+  <div class="canvas-inner" id="canvas">
+
+    <!-- SVG CONNECTIONS -->
+    <svg class="conn-svg" viewBox="0 0 900 520" id="svgLayer">
+
+      <!-- BG PATHS (always visible, dashed) -->
+      <!-- n1 → n2 -->
+      <path class="conn-bg" d="M 360 108 C 360 134, 360 134, 360 160"/>
+      <!-- n2 → n3 -->
+      <path class="conn-bg" d="M 360 228 C 360 260, 120 260, 120 278"/>
+      <!-- n2 → n4 -->
+      <path class="conn-bg" d="M 360 228 C 360 260, 360 260, 360 278"/>
+      <!-- n2 → n5 -->
+      <path class="conn-bg" d="M 360 228 C 360 260, 600 260, 600 278"/>
+      <!-- n3 → n6 -->
+      <path class="conn-bg" d="M 120 358 C 120 390, 360 390, 360 400"/>
+      <!-- n4 → n6 -->
+      <path class="conn-bg" d="M 360 358 C 360 390, 360 390, 360 400"/>
+      <!-- n5 → n6 -->
+      <path class="conn-bg" d="M 600 358 C 600 390, 360 390, 360 400"/>
+
+      <!-- ANIMATED LINES -->
+      <path class="conn-line" id="l1" d="M 360 108 C 360 134, 360 134, 360 160"/>
+      <path class="conn-line" id="l2" d="M 360 228 C 360 260, 120 260, 120 278"/>
+      <path class="conn-line" id="l3" d="M 360 228 C 360 260, 360 260, 360 278"/>
+      <path class="conn-line" id="l4" d="M 360 228 C 360 260, 600 260, 600 278"/>
+      <path class="conn-line" id="l5" d="M 120 358 C 120 390, 360 390, 360 400"/>
+      <path class="conn-line" id="l6" d="M 360 358 C 360 390, 360 390, 360 400"/>
+      <path class="conn-line" id="l7" d="M 600 358 C 600 390, 360 390, 360 400"/>
+
+      <!-- TRAVELING DOTS -->
+      <circle class="travel-circle" id="d1"><animateMotion id="am1" dur="0.65s" begin="indefinite" fill="freeze" calcMode="spline" keySplines="0.4 0 0.2 1"><mpath href="#l1"/></animateMotion></circle>
+      <circle class="travel-circle" id="d2"><animateMotion id="am2" dur="0.65s" begin="indefinite" fill="freeze" calcMode="spline" keySplines="0.4 0 0.2 1"><mpath href="#l2"/></animateMotion></circle>
+      <circle class="travel-circle" id="d3"><animateMotion id="am3" dur="0.65s" begin="indefinite" fill="freeze" calcMode="spline" keySplines="0.4 0 0.2 1"><mpath href="#l3"/></animateMotion></circle>
+      <circle class="travel-circle" id="d4"><animateMotion id="am4" dur="0.65s" begin="indefinite" fill="freeze" calcMode="spline" keySplines="0.4 0 0.2 1"><mpath href="#l4"/></animateMotion></circle>
+      <circle class="travel-circle" id="d5"><animateMotion id="am5" dur="0.65s" begin="indefinite" fill="freeze" calcMode="spline" keySplines="0.4 0 0.2 1"><mpath href="#l5"/></animateMotion></circle>
+      <circle class="travel-circle" id="d6"><animateMotion id="am6" dur="0.65s" begin="indefinite" fill="freeze" calcMode="spline" keySplines="0.4 0 0.2 1"><mpath href="#l6"/></animateMotion></circle>
+      <circle class="travel-circle" id="d7"><animateMotion id="am7" dur="0.65s" begin="indefinite" fill="freeze" calcMode="spline" keySplines="0.4 0 0.2 1"><mpath href="#l7"/></animateMotion></circle>
+
+      <!-- PATH LABELS -->
+      <text class="path-label" id="pl1" x="370" y="140">veri gönderildi</text>
+      <text class="path-label" id="pl2" x="170" y="263">CRM</text>
+      <text class="path-label" id="pl3" x="365" y="263">Yanıt</text>
+      <text class="path-label" id="pl4" x="520" y="263">Ekip</text>
+      <text class="path-label" id="pl5" x="150" y="396">✓</text>
+      <text class="path-label" id="pl6" x="365" y="396">✓</text>
+      <text class="path-label" id="pl7" x="555" y="396">✓</text>
+    </svg>
+
+    <!-- NODE 1: Tetikleyici -->
+    <div class="node state-idle" id="n1" style="left:255px;top:40px;">
+      <div class="node-icon ni-orange">
+        <svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+      </div>
+      <div class="node-info">
+        <div class="node-title">Temas Geldi</div>
+        <div class="node-sub">Form / Mail / WhatsApp</div>
+      </div>
+      <div class="node-status-dot"></div>
+    </div>
+
+    <!-- NODE 2: Analiz -->
+    <div class="node state-idle" id="n2" style="left:255px;top:160px;">
+      <div class="node-icon ni-blue">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/><path d="M8 11h6M11 8v6"/></svg>
+      </div>
+      <div class="node-info">
+        <div class="node-title">İçerik Analiz Et</div>
+        <div class="node-sub">Sınıflandır & Yönlendir</div>
+      </div>
+      <div class="node-status-dot"></div>
+    </div>
+
+    <!-- NODE 3: CRM -->
+    <div class="node state-idle" id="n3" style="left:15px;top:278px;">
+      <div class="node-icon ni-navy">
+        <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      </div>
+      <div class="node-info">
+        <div class="node-title">CRM Kaydı</div>
+        <div class="node-sub">Müşteri sisteme eklendi</div>
+      </div>
+      <div class="node-status-dot"></div>
+    </div>
+
+    <!-- NODE 4: Yanıt -->
+    <div class="node state-idle" id="n4" style="left:255px;top:278px;">
+      <div class="node-icon ni-purple">
+        <svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+      </div>
+      <div class="node-info">
+        <div class="node-title">Yanıt Taslağı</div>
+        <div class="node-sub">Otomatik oluşturuldu</div>
+      </div>
+      <div class="node-status-dot"></div>
+    </div>
+
+    <!-- NODE 5: Bildirim -->
+    <div class="node state-idle" id="n5" style="left:495px;top:278px;">
+      <div class="node-icon ni-teal">
+        <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      </div>
+      <div class="node-info">
+        <div class="node-title">Ekip Bildirimi</div>
+        <div class="node-sub">Satış ekibi haberdar</div>
+      </div>
+      <div class="node-status-dot"></div>
+    </div>
+
+    <!-- NODE 6: Done -->
+    <div class="node state-idle" id="n6" style="left:255px;top:400px;">
+      <div class="node-icon ni-green">
+        <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+      </div>
+      <div class="node-info">
+        <div class="node-title">Temas Tamamlandı</div>
+        <div class="node-sub">Hiçbir şey gözden kaçmadı</div>
+      </div>
+      <div class="node-status-dot"></div>
+    </div>
+
+  </div>
+
+  <!-- LOOP PROGRESS BAR -->
+  <div class="loop-bar">
+    <span class="loop-label">Sonraki döngü</span>
+    <div class="loop-track"><div class="loop-fill" id="loopFill"></div></div>
+    <span class="loop-count" id="loopCount">Döngü #1</span>
+  </div>
+</div>
+
+<script>
+// ─── HELPERS ─────────────────────────────────────────────────────────────────
+function setNode(id, state) {
+  const el = document.getElementById(id);
+  el.className = 'node state-' + state;
+}
+
+function showLine(id) {
+  document.getElementById(id).classList.add('active');
+}
+
+function hideLine(id) {
+  document.getElementById(id).classList.remove('active');
+}
+
+function travelDot(dotId, amId) {
+  const dot = document.getElementById(dotId);
+  dot.style.opacity = '1';
+  const am = document.getElementById(amId);
+  am.beginElement();
+  setTimeout(() => { dot.style.opacity = '0'; }, 700);
+}
+
+function setStatus(idx) {
+  // 0=idle,1=trigger,2=analyze,3=actions,4=done
+  document.querySelectorAll('.status-item').forEach((el, i) => {
+    el.classList.remove('active-step', 'done-step');
+    if (i === idx) el.classList.add('active-step');
+    else if (i < idx) el.classList.add('done-step');
+  });
+}
+
+function setLabel(txt) {
+  document.getElementById('stepLabel').textContent = txt;
+}
+
+// ─── ANIMATION SEQUENCE ──────────────────────────────────────────────────────
+let loopNum = 1;
+let progressInterval = null;
+let progressStart = null;
+const LOOP_DURATION = 7000; // ms
+
+function resetAll() {
+  ['n1','n2','n3','n4','n5','n6'].forEach(n => setNode(n, 'idle'));
+  ['l1','l2','l3','l4','l5','l6','l7'].forEach(l => hideLine(l));
+  ['d1','d2','d3','d4','d5','d6','d7'].forEach(d => {
+    document.getElementById(d).style.opacity = '0';
+  });
+  setStatus(0);
+}
+
+function runSequence() {
+  resetAll();
+  setLabel('Temas bekleniyor...');
+
+  const timeline = [
+    // t=0: Trigger activates
+    [0,    () => { setNode('n1','running'); setStatus(1); setLabel('Temas algılandı — analiz başlıyor...'); }],
+
+    // t=700: Line n1→n2, dot travels
+    [700,  () => { showLine('l1'); travelDot('d1','am1'); }],
+
+    // t=1400: n2 activates
+    [1400, () => { setNode('n1','done'); setNode('n2','running'); setStatus(2); setLabel('İçerik analiz ediliyor...'); }],
+
+    // t=2100: 3 lines + dots simultaneously
+    [2100, () => {
+      showLine('l2'); travelDot('d2','am2');
+      showLine('l3'); travelDot('d3','am3');
+      showLine('l4'); travelDot('d4','am4');
+      setLabel('İşlemler devreye giriyor...');
+    }],
+
+    // t=2800: 3 action nodes activate
+    [2800, () => {
+      setNode('n2','done');
+      setNode('n3','running');
+      setNode('n4','running');
+      setNode('n5','running');
+      setStatus(3);
+      setLabel('CRM kaydı + Yanıt taslağı + Ekip bildirimi...');
+    }],
+
+    // t=3700: converge lines to done
+    [3700, () => {
+      showLine('l5'); travelDot('d5','am5');
+      showLine('l6'); travelDot('d6','am6');
+      showLine('l7'); travelDot('d7','am7');
+    }],
+
+    // t=4400: n6 done
+    [4400, () => {
+      setNode('n3','done');
+      setNode('n4','done');
+      setNode('n5','done');
+      setNode('n6','running');
+      setLabel('Temas tamamlanıyor...');
+    }],
+
+    // t=5100: all done
+    [5100, () => {
+      setNode('n6','done');
+      setStatus(4);
+      setLabel('✓ Tüm adımlar tamamlandı');
+    }],
+  ];
+
+  timeline.forEach(([delay, fn]) => setTimeout(fn, delay));
+}
+
+// ─── LOOP PROGRESS ───────────────────────────────────────────────────────────
+function startProgressBar() {
+  progressStart = Date.now();
+  clearInterval(progressInterval);
+  progressInterval = setInterval(() => {
+    const elapsed = Date.now() - progressStart;
+    const pct = Math.min((elapsed / LOOP_DURATION) * 100, 100);
+    document.getElementById('loopFill').style.width = pct + '%';
+    if (pct >= 100) {
+      clearInterval(progressInterval);
+      loopNum++;
+      document.getElementById('loopCount').textContent = 'Döngü #' + loopNum;
+      runSequence();
+      setTimeout(startProgressBar, 100);
+    }
+  }, 50);
+}
+
+// ─── START ───────────────────────────────────────────────────────────────────
+document.getElementById('loopCount').textContent = 'Döngü #1';
+runSequence();
+setTimeout(startProgressBar, 100);
+</script>
+</body>
+</html>
